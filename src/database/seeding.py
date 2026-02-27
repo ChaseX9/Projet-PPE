@@ -216,11 +216,11 @@ Quand vous voyez "LVMH : 750€ (+1,2%)", cela signifie que l'action LVMH vaut 7
             "lessons": [
                 {
                     "title": "Qu'est-ce qu'un ETF ?",
-                    "content": """Un ETF (Exchange Traded Fund), aussi appelé "tracker", est un fonds d'investissement qui cherche à répliquer la performance d'un indice boursier, comme le CAC 40 ou le S&P 500.
+                    "content": """Un ETF (Exchange Traded Fund), aussi appelé 'tracker', est un fonds d'investissement qui cherche à répliquer la performance d'un indice boursier, comme le CAC 40 ou le S&P 500.
 
 **Le concept de gestion passive**
 
-Contrairement aux fonds classiques où un gérant choisit des actions pour essayer de "battre le marché" (gestion active), un ETF se contente de copier l'indice (gestion passive). C'est beaucoup plus simple et surtout beaucoup moins cher.
+Contrairement aux fonds classiques où un gérant choisit des actions pour essayer de 'battre le marché' (gestion active), un ETF se contente de copier l'indice (gestion passive). C'est beaucoup plus simple et surtout beaucoup moins cher.
 
 **Les avantages majeurs des ETF**
 
@@ -238,9 +238,7 @@ Contrairement aux fonds classiques où un gérant choisit des actions pour essay
 2. **Les frais (TER)** : plus ils sont bas, mieux c'est.
 3. **Le mode de réplication** : Physique (le fonds détient les actions) ou Synthétique (via un contrat financier).
 4. **La politique de dividende** : Capitalisation (les dividendes sont réinvestis) ou Distribution (les dividendes vous sont versés).""",
-                    "example": """Si vous voulez investir dans les 40 plus grandes entreprises françaises, vous pouvez :
-1. Acheter les 40 actions une par une (long, coûteux en frais de transaction).
-2. Acheter un seul ETF CAC 40 (rapide, un seul frais de transaction, diversification immédiate).""",
+                    "example": "Pour investir dans les 40 plus grandes entreprises françaises : 1) Acheter les 40 actions une par une (long, coûteux) ou 2) Acheter un seul ETF CAC 40 (rapide, diversification immédiate).",
                     "estimated_minutes": 10,
                     "xp_reward": 15,
                     "questions": [
