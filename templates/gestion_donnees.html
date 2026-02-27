@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de mes Données - CapInvest</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .data-management-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .data-section {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .data-section h2 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .data-section p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .consent-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            margin-bottom: 0.75rem;
+        }
+
+        .consent-toggle label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .danger-zone {
+            border: 2px solid var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .danger-zone h2 {
+            color: var(--danger);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-main);
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(18px);
+        }
+
+        .info-box {
+            background: var(--primary-bg);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            margin: 1rem 0;
+            color: var(--text-main);
+        }
+
+        .export-preview {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 10% auto;
+            padding: 2rem;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: var(--shadow-xl);
+            color: var(--text-main);
+        }
+
+        .modal-content h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/espace_perso.html" class="nav-brand">
+                <img src="/static/images/capinvest_logo.png" alt="Logo" class="nav-logo">
+                <span>CapInvest</span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <div class="nav-links">
+                    <a href="/espace_perso.html">Tableau de Bord</a>
+                    <a href="/explorer.html">Explorer</a>
+                    <a href="/nouvel_invest.html">Nouvel Investissement</a>
+                    <a href="/suivi_invest.html">Suivi</a>
+                    <a href="/academy.html">Academy</a>
+                </div>
+                <!-- User Profile Dropdown -->
+                <div class="user-menu" onclick="toggleUserMenu(event)">
+                    <div class="user-menu-trigger">
+                        <span id="user-menu-name">Mon Profil</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="user-menu-dropdown" id="user-dropdown">
+                        <a href="/mon_profil.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Mon Profil
+                        </a>
+                        <a href="/gestion_donnees.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Gestion de mes Données
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="api.logout(); return false;" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 2rem;">
+        <a href="/espace_perso.html" class="back-link">← Retour à l'espace personnel</a>
+
+        <div class="data-management-container">
+            <h1 style="color: var(--primary); margin-bottom: 2rem;">🔒 Gestion de mes Données Personnelles</h1>
+
+            <!-- Gestion des consentements -->
+            <div class="data-section">
+                <h2>⚙️ Mes Préférences de Confidentialité</h2>
+                <p>Gérez vos consentements pour les cookies et communications. Vous pouvez modifier ces préférences à
+                    tout moment.</p>
+
+                <div class="consent-toggle">
+                    <span style="color: var(--text);">
+                        <strong>Cookies de préférences</strong><br>
+                        <small style="color: var(--text-muted);">Mémorisation de vos choix d'interface et de
+                            langue</small>
+                    </span>
+                    <input type="checkbox" id="cookies-consent" onchange="updateConsent()"
+                        style="width: auto; margin: 0; cursor: pointer; transform: scale(1.3);">
+                </div>
+
+                <div class="consent-toggle">
+                    <span style="color: var(--text);">
+                        <strong>Communications marketing</strong><br>
+                        <small style="color: var(--text-muted);">Recevoir des conseils et actualités (newsletter
+                            future)</small>
+                    </span>
+                    <input type="checkbox" id="marketing-consent" onchange="updateConsent()"
+                        style="width: auto; margin: 0; cursor: pointer; transform: scale(1.3);">
+                </div>
+
+                <div class="info-box">
+                    <strong>ℹ️ Note :</strong> Les cookies essentiels (authentification) ne peuvent pas être désactivés
+                    car ils sont nécessaires au fonctionnement du service.
+                </div>
+
+                <div id="consent-status" style="margin-top: 1rem; color: var(--success);"></div>
+            </div>
+
+            <!-- Modification des données -->
+            <div class="data-section">
+                <h2>✏️ Modifier mes Informations</h2>
+                <p>Modifiez vos informations personnelles et votre mot de passe.</p>
+                <button class="module-button" style="display: inline-block;" onclick="openEditModal()">
+                    Modifier mes informations
+                </button>
+            </div>
+
+            <!-- Zone danger: Suppression de compte -->
+            <div class="data-section danger-zone">
+                <h2>🗑️ Supprimer mon Compte</h2>
+                <p><strong>⚠️ ATTENTION :</strong> Cette action est irréversible. Toutes vos données seront
+                    définitivement supprimées :</p>
+                <ul style="color: var(--danger); margin-left: 1.5rem; margin-bottom: 1rem;">
+                    <li>Compte utilisateur</li>
+                    <li>Profils investisseurs</li>
+                    <li>Portefeuilles sauvegardés</li>
+                    <li>Progression Academy</li>
+                    <li>Toutes les données associées</li>
+                </ul>
+                <button class="module-button" style="background: #ff4d4f; border-color: #ff4d4f;"
+                    onclick="openDeleteModal()">
+                    Supprimer définitivement mon compte
+                </button>
+            </div>
+
+            <!-- Informations RGPD -->
+            <div class="data-section">
+                <h2>📋 Vos Droits RGPD</h2>
+                <p>Conformément au RGPD, vous disposez des droits suivants :</p>
+                <ul style="color: var(--text-muted); margin-left: 1.5rem;">
+                    <li><strong>Droit d'accès :</strong> Obtenir une copie de vos données (disponible dans votre profil)
+                    </li>
+                    <li><strong>Droit de rectification :</strong> Modifier vos informations</li>
+                    <li><strong>Droit à l'effacement :</strong> Supprimer votre compte et vos données</li>
+                    <li><strong>Droit à la portabilité :</strong> Exporter vos données au format JSON</li>
+                    <li><strong>Droit d'opposition :</strong> Refuser certains traitements</li>
+                    <li><strong>Droit de limitation :</strong> Limiter le traitement de vos données</li>
+                </ul>
+                <p style="margin-top: 1rem;">Pour toute question ou réclamation, contactez-nous : <strong>[VOTRE EMAIL
+                        RGPD]</strong></p>
+                <p>Vous pouvez également déposer une réclamation auprès de la <a href="https://www.cnil.fr"
+                        target="_blank">CNIL</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h3>⚠️ Confirmer la suppression</h3>
+            <p>Cette action est <strong>irréversible</strong>. Toutes vos données seront définitivement supprimées.</p>
+            <p>Pour confirmer, veuillez saisir votre mot de passe :</p>
+            <input type="password" id="delete-password" placeholder="Mot de passe"
+                style="width: 100%; padding: 0.75rem; margin: 1rem 0; border: 1px solid #d9d9d9; border-radius: 4px;">
+            <div class="modal-buttons">
+                <button class="module-button" style="background: #d9d9d9; border-color: #d9d9d9; color: #333;"
+                    onclick="closeDeleteModal()">
+                    Annuler
+                </button>
+                <button class="module-button" style="background: #ff4d4f; border-color: #ff4d4f;"
+                    onclick="confirmDelete()">
+                    Supprimer définitivement
+                </button>
+            </div>
+            <div id="delete-error" style="color: #ff4d4f; margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- Modal de modification d'informations -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--primary);">✏️ Modifier mes informations</h3>
+            <p>Modifiez vos informations personnelles ci-dessous.</p>
+
+            <div style="margin: 1rem 0;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nom complet</label>
+                <input type="text" id="edit-fullname" placeholder="Nom complet"
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+            </div>
+
+            <div style="margin: 1rem 0;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                <input type="email" id="edit-email" placeholder="Email"
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+            </div>
+
+            <div style="margin: 1.5rem 0;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Changer le mot de passe
+                    (optionnel)</label>
+                <input type="password" id="edit-current-password" placeholder="Mot de passe actuel"
+                    style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+                <input type="password" id="edit-new-password" placeholder="Nouveau mot de passe"
+                    style="width: 100%; padding: 0.75rem; margin-bottom: 0.5rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+                <input type="password" id="edit-confirm-password" placeholder="Confirmer nouveau mot de passe"
+                    style="width: 100%; padding: 0.75rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="module-button" style="background: #d9d9d9; border-color: #d9d9d9; color: #333;"
+                    onclick="closeEditModal()">
+                    Annuler
+                </button>
+                <button class="module-button" style="background: var(--primary); border-color: var(--primary);"
+                    onclick="saveProfileChanges()">
+                    Enregistrer
+                </button>
+            </div>
+            <div id="edit-status" style="margin-top: 1rem;"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js?v=1.1"></script>
+    <script>
+        if (!api.isAuthenticated()) {
+            window.location.href = '/login.html';
+        }
+
+        // User dropdown menu functions
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = event.currentTarget.closest('.user-menu');
+            menu.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function (e) {
+            if (!e.target.closest('.user-menu')) {
+                document.querySelectorAll('.user-menu.active').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+            }
+        });
+
+        async function loadUserName() {
+            try {
+                const user = await api.getMe();
+                const nameElement = document.getElementById('user-menu-name');
+                if (user && user.full_name) {
+                    nameElement.textContent = user.full_name;
+                }
+            } catch (err) {
+                console.warn('Could not load user name:', err);
+            }
+        }
+
+        // Load current consent preferences
+        async function loadConsent() {
+            try {
+                const consent = await api.get('/api/user/consent');
+                document.getElementById('cookies-consent').checked = consent.cookies_consent;
+                document.getElementById('marketing-consent').checked = consent.marketing_consent;
+            } catch (err) {
+                console.error('Error loading consent:', err);
+            }
+        }
+
+        // Update consent preferences
+        async function updateConsent() {
+            try {
+                const cookiesConsent = document.getElementById('cookies-consent').checked;
+                const marketingConsent = document.getElementById('marketing-consent').checked;
+
+                await api.post('/api/user/consent', {
+                    cookies_consent: cookiesConsent,
+                    marketing_consent: marketingConsent
+                });
+
+                document.getElementById('consent-status').textContent = '✓ Préférences mises à jour';
+                setTimeout(() => {
+                    document.getElementById('consent-status').textContent = '';
+                }, 3000);
+            } catch (err) {
+                alert('Erreur lors de la mise à jour des préférences');
+            }
+        }
+
+        // Export user data
+        async function exportData() {
+            try {
+                const data = await api.get('/api/user/data');
+
+                // Create downloadable JSON file
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `capinvest_data_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                document.getElementById('export-status').textContent = '✓ Données téléchargées avec succès !';
+                setTimeout(() => {
+                    document.getElementById('export-status').textContent = '';
+                }, 5000);
+            } catch (err) {
+                alert('Erreur lors de l\'export des données');
+            }
+        }
+
+        // Delete account modal
+        function openDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'block';
+            document.getElementById('delete-password').value = '';
+            document.getElementById('delete-error').textContent = '';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        async function confirmDelete() {
+            const password = document.getElementById('delete-password').value;
+
+            if (!password) {
+                document.getElementById('delete-error').textContent = 'Veuillez saisir votre mot de passe';
+                return;
+            }
+
+            try {
+                await api.delete('/api/user/account', {
+                    password: password,
+                    confirm_deletion: true
+                });
+
+                alert('Votre compte a été supprimé. Vous allez être redirigé.');
+                window.location.href = '/login.html';
+            } catch (err) {
+                console.error('Deletion error:', err);
+                const errorDiv = document.getElementById('delete-error');
+                if (err instanceof Error) {
+                    errorDiv.textContent = err.message;
+                } else if (typeof err === 'string') {
+                    errorDiv.textContent = err;
+                } else {
+                    errorDiv.textContent = JSON.stringify(err);
+                }
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target == modal) {
+                closeDeleteModal();
+            }
+        }
+
+        // Edit profile modal
+        async function openEditModal() {
+            const user = await api.getMe();
+            document.getElementById('edit-fullname').value = user.full_name || '';
+            document.getElementById('edit-email').value = user.email || '';
+            document.getElementById('edit-current-password').value = '';
+            document.getElementById('edit-new-password').value = '';
+            document.getElementById('edit-confirm-password').value = '';
+            document.getElementById('edit-status').textContent = '';
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        async function saveProfileChanges() {
+            const fullname = document.getElementById('edit-fullname').value;
+            const email = document.getElementById('edit-email').value;
+            const currentPassword = document.getElementById('edit-current-password').value;
+            const newPassword = document.getElementById('edit-new-password').value;
+            const confirmPassword = document.getElementById('edit-confirm-password').value;
+            const statusDiv = document.getElementById('edit-status');
+
+            try {
+                // Validate password change if provided
+                if (newPassword || currentPassword || confirmPassword) {
+                    if (!currentPassword) {
+                        statusDiv.style.color = '#ff4d4f';
+                        statusDiv.textContent = '❌ Mot de passe actuel requis pour changer le mot de passe';
+                        return;
+                    }
+                    if (newPassword !== confirmPassword) {
+                        statusDiv.style.color = '#ff4d4f';
+                        statusDiv.textContent = '❌ Les nouveaux mots de passe ne correspondent pas';
+                        return;
+                    }
+                    if (newPassword.length < 6) {
+                        statusDiv.style.color = '#ff4d4f';
+                        statusDiv.textContent = '❌ Le nouveau mot de passe doit contenir au moins 6 caractères';
+                        return;
+                    }
+                }
+
+                // Prepare update data
+                const updateData = {
+                    full_name: fullname,
+                    email: email
+                };
+
+                if (newPassword) {
+                    updateData.current_password = currentPassword;
+                    updateData.new_password = newPassword;
+                }
+
+                // Send update request
+                await api.patch('/auth/me', updateData);
+
+                statusDiv.style.color = 'var(--success)';
+                statusDiv.textContent = '✓ Informations mises à jour avec succès !';
+
+                // Update username in dropdown
+                document.getElementById('user-menu-name').textContent = fullname;
+
+                setTimeout(() => {
+                    closeEditModal();
+                }, 2000);
+            } catch (err) {
+                statusDiv.style.color = '#ff4d4f';
+                statusDiv.textContent = `❌ Erreur: ${err.message || 'Impossible de mettre à jour les informations'}`;
+            }
+        }
+
+        // Load consent on page load
+        loadConsent();
+        loadUserName();
+    </script>
+</body>
+
+</html>

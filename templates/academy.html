@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapInvest Academy</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=9">
+    <style>
+        .academy-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .academy-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .level-section {
+            margin-bottom: 3rem;
+        }
+
+        .level-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .level-badge.beginner {
+            background: rgba(107, 155, 110, 0.15);
+            color: #86EFAC;
+        }
+
+        .level-badge.intermediate {
+            background: rgba(74, 144, 164, 0.15);
+            color: var(--primary-light);
+        }
+
+        .level-badge.advanced {
+            background: rgba(200, 75, 75, 0.15);
+            color: #F87171;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .module-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .module-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .module-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-description {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .module-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .progress-container {
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2196f3, #4caf50);
+            border-radius: 4px;
+            transition: width 0.3s;
+            box-shadow: 0 0 10px rgba(33, 150, 243, 0.3);
+        }
+
+        .progress-fill.completed {
+            background: linear-gradient(90deg, #4caf50, #81c784);
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .module-button {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .module-button:hover {
+            background: var(--secondary);
+        }
+
+        .module-card.locked {
+            position: relative;
+            background: var(--card-bg);
+            cursor: default;
+            overflow: hidden;
+        }
+
+        .module-info-blur {
+            filter: blur(5px);
+            opacity: 0.5;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .lock-reason-popup {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .lock-icon-lg {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .lock-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .daily-banner {
+            background: var(--primary-bg);
+            border: 1px solid var(--primary);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-weight: 500;
+        }
+
+        .daily-banner b {
+            color: var(--primary);
+        }
+
+        .daily-status-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+
+        .daily-progress {
+            margin-top: 1rem;
+            width: 100%;
+        }
+
+        .daily-progress-bar {
+            height: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .daily-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1890ff, #52c41a);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            margin: 10% auto;
+            padding: 2.5rem;
+            border-radius: 16px;
+            max-width: 600px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            color: var(--text-main);
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1.5rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .info-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 0.5rem;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .info-button:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .modal-body h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .modal-body ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-body li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/espace_perso.html" class="nav-brand">
+                <img src="/static/images/capinvest_logo.png" alt="Logo" class="nav-logo">
+                <span>CapInvest</span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <div class="nav-links">
+                    <a href="/espace_perso.html">Tableau de Bord</a>
+                    <a href="/explorer.html">Explorer</a>
+                    <a href="/nouvel_invest.html">Nouvel Investissement</a>
+                    <a href="/suivi_invest.html">Suivi</a>
+                    <a href="/academy.html" class="active">Academy</a>
+                </div>
+                <!-- User Profile Dropdown -->
+                <div class="user-menu" onclick="toggleUserMenu(event)">
+                    <div class="user-menu-trigger">
+                        <span id="user-menu-name">Mon Profil</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="user-menu-dropdown" id="user-dropdown">
+                        <a href="/mon_profil.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Mon Profil
+                        </a>
+                        <a href="/gestion_donnees.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Gestion de mes Données
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="api.logout(); return false;" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 2rem;">
+        <a href="/espace_perso.html" class="back-link">
+            ← Retour à l'espace personnel
+        </a>
+
+        <div class="academy-header">
+            <h1 style="display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                    <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+                CapInvest Academy
+                <span class="info-button" onclick="showInfo()">i</span>
+            </h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Formez-vous à l'investissement intelligent</p>
+
+            <div class="stats-bar" id="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-xp">0 XP</div>
+                    <div class="stat-label">XP Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="modules-count">0</div>
+                    <div class="stat-label">Modules</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="completed-count">0/0</div>
+                    <div class="stat-label">Leçons complétées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-time">0 min</div>
+                    <div class="stat-label">Temps complété</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="current-streak">0 j.</div>
+                    <div class="stat-label">Série actuelle</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="daily-status-container"></div>
+
+        <div id="content-area">
+            <div class="loading">Chargement des modules...</div>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="hideInfo()">&times;</span>
+            <div class="modal-body">
+                <h2 style="margin-top: 0; display: flex; align-items: center; gap: 0.75rem;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                        <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                    </svg>
+                    Comment fonctionne l'Academy ?
+                </h2>
+                <p>Bienvenue dans votre espace d'apprentissage ! Voici quelques clés pour réussir votre parcours :</p>
+
+                <h3>Les Leçons</h3>
+                <p>Chaque module est composé de plusieurs leçons théoriques suivies d'exemples concrets pour faciliter
+                    la compréhension.</p>
+
+                <h3>Les Quiz</h3>
+                <ul>
+                    <li>À la fin de chaque leçon, un quiz teste vos connaissances.</li>
+                    <li>Vous devez obtenir au moins <strong>70% de bonnes réponses</strong> pour valider une leçon.</li>
+                    <li>Chaque validation vous rapporte des <strong>XP (Points d'Expérience)</strong>.</li>
+                </ul>
+
+                <h3>Progression et Séries</h3>
+                <ul>
+                    <li><strong>XP :</strong> Accumulez des points pour suivre votre progression globale.</li>
+                    <li><strong>Séries (Streaks) :</strong> Revenez chaque jour pour valider une leçon et faire monter
+                        votre série de jours consécutifs !</li>
+                    <li><strong>Objectifs :</strong> Une barre verte indique qu'un module est entièrement maîtrisé
+                        (100% de réussite).</li>
+                </ul>
+
+                <button class="module-button" style="margin-top: 1.5rem;" onclick="hideInfo()">J'ai compris !</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        if (!api.isAuthenticated()) {
+            window.location.href = '/login.html';
+        }
+
+        const ICONS = {
+            xp: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+            lessons: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+            streak: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.56-2.63-1.46-3.53a2.47 2.47 0 0 1-.54-1.47c0-1.38 1.12-2.5 2.5-2.5a2.5 2.5 0 0 1 2.5 2.5c0 .32-.06.63-.17.91-1.12 1.34-1.83 3.06-1.83 4.95a4.5 4.5 0 0 0 9 0c0-2-1-4-2-5-.5 1-1.5 1.5-2 1.5.5-1.5-.5-3-1.5-4.5-1-1.5-2.5-2-3.5-3-.5.5-1 1.5-1 2.5 0 1 .5 1.5 1 2.5-1 1-1.5 2.5-1.5 4a3.5 3.5 0 0 1-7 0a3.5 3.5 0 0 1 3.5-3.5c.34 0 .67.05.98.15.22.07.45.1.67.1.34 0 .66-.08.95-.24.51-.27.85-.81.85-1.41 0-1.1-.9-2-2-2"/></svg>',
+            beginner: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15.5c2.5 2.5 5 2.5 6.5 1S19 12.5 16.5 10c-1.5-1.5-3-1.5-4.5 0-1.5-1.5-3-1.5-4.5 0-2.5 2.5-2.5 5-1 6.5s4 1.5 6.5-1z"/><path d="M12 12l.01.01"/><path d="M12 22V12"/></svg>',
+            intermediate: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 2.6-2 3.5 0 1.1.9 2 2 2 1.1 0 2.9-.5 4.32-2.1M16.5 4.5c1.26-1.5 2.6-2 3.5-2 1.1 0 2 .9 2 2 0 1.1-.5 2.9-2.1 4.32"/><path d="M12 8l4 4"/><path d="M16 16l-4-4"/><path d="M8 12l4 4"/><path d="M12 12l-4-4"/><path d="M9 15L3 21"/><path d="M15 9l6-6"/><path d="M13.5 3.5l1 1"/><path d="M19.5 9.5l1 1"/><path d="M3.5 13.5l1 1"/><path d="M9.5 19.5l1 1"/></svg>',
+            advanced: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>',
+            lock: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+            check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+            // Mapping for database emojis
+            '🎯': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+            '📈': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+            '📊': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>',
+            '🏎️': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg>',
+            '🔍': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+            '🌍': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+            // Fallback book icon
+            'default': '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>'
+        };
+
+        let modules = [];
+        let stats = null;
+
+        async function loadData() {
+            try {
+                const [modulesData, statsData] = await Promise.all([
+                    api.get('/api/training/modules'),
+                    api.get('/api/training/progress')
+                ]);
+
+                modules = modulesData;
+                stats = statsData;
+
+                renderDailyBanner();
+                renderStats();
+                renderModules();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('content-area').innerHTML =
+                    '<div class="loading">Erreur de chargement. Veuillez rafraîchir la page.</div>';
+            }
+        }
+
+        function renderStats() {
+            document.getElementById('total-xp').innerHTML = `${ICONS.xp} ${stats.total_xp} XP`;
+            document.getElementById('completed-count').innerHTML =
+                `${ICONS.lessons} ${stats.completed_lessons_count}/${stats.total_lessons}`;
+            document.getElementById('current-streak').innerHTML = `${ICONS.streak} ${stats.current_streak} j.`;
+
+            // Module count
+            document.getElementById('modules-count').textContent = modules.length;
+
+            // Total estimated time from API
+            const totalMinutes = stats.total_minutes || 0;
+            const hours = Math.floor(totalMinutes / 60);
+            const mins = totalMinutes % 60;
+            document.getElementById('total-time').textContent = hours > 0
+                ? `${hours}h${mins > 0 ? mins + 'min' : ''}`
+                : `${totalMinutes} min`;
+        }
+
+        function renderDailyBanner() {
+            const container = document.getElementById('daily-status-container');
+            const activeLevels = Object.keys(stats.daily_modules);
+
+            if (activeLevels.length === 0) {
+                container.innerHTML = `
+                    <div class="daily-banner">
+                        <div class="daily-status-icon">${ICONS.lessons}</div>
+                        <span>Choisissez vos modules du jour pour commencer votre session !</span>
+                    </div>
+                `;
+            } else {
+                let bannerHtml = '';
+                for (const [level, moduleId] of Object.entries(stats.daily_modules)) {
+                    if (!moduleId) continue;
+
+                    const module = modules.find(m => m.id === moduleId);
+                    const title = stats.daily_session_titles[level];
+                    const progress = stats.daily_session_progress[level];
+                    const levelLabel = level === 'beginner' ? 'Débutant' : (level === 'intermediate' ? 'Intermédiaire' : 'Avancé');
+
+                    if (progress === 100) {
+                        bannerHtml += `
+                            <div class="daily-banner" style="background: #f6ffed; border-color: #b7eb8f; color: #389e0d; margin-bottom: 1rem;">
+                                <div class="daily-status-icon" style="color: #52c41a;">${ICONS.check}</div>
+                                <span>Session <b>${levelLabel}</b> terminée ! Nouveau module disponible demain.</span>
+                            </div>
+                        `;
+                    } else {
+                        bannerHtml += `
+                            <div class="daily-banner" style="margin-bottom: 1rem;">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <div class="daily-status-icon">${ICONS.streak}</div>
+                                        <span>Continuer le module <b>${levelLabel}</b> : <b>${title}</b></span>
+                                    </div>
+                                    <div class="daily-progress">
+                                        <div class="daily-progress-bar">
+                                            <div class="daily-progress-fill" style="width: ${progress}%"></div>
+                                        </div>
+                                        <div style="font-size: 0.8rem; margin-top: 0.4rem; color: #595959;">
+                                            <b>${progress}%</b> de la session complété aujourd'hui
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="module-button" style="width: auto; padding: 0.5rem 1.5rem;" onclick="goToModule(${moduleId})">
+                                    Continuer
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+                container.innerHTML = bannerHtml;
+            }
+        }
+
+        function renderModules() {
+            const grouped = {
+                beginner: modules.filter(m => m.level === 'beginner'),
+                intermediate: modules.filter(m => m.level === 'intermediate'),
+                advanced: modules.filter(m => m.level === 'advanced')
+            };
+
+            let html = '';
+
+            if (grouped.beginner.length > 0) {
+                html += renderLevelSection('Débutant', 'beginner', grouped.beginner);
+            }
+            if (grouped.intermediate.length > 0) {
+                html += renderLevelSection('Intermédiaire', 'intermediate', grouped.intermediate);
+            }
+            if (grouped.advanced.length > 0) {
+                html += renderLevelSection
+
+                    ('Avancé', 'advanced', grouped.advanced);
+            }
+
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function renderLevelSection(title, level, items) {
+            const icons = { beginner: ICONS.beginner, intermediate: ICONS.intermediate, advanced: ICONS.advanced };
+
+            return `
+                <div class="level-section">
+                    <div class="level-title">
+                        <span style="display: flex; align-items: center;">${icons[level]}</span>
+                        <h2 style="margin: 0;">${title}</h2>
+                        <span class="level-badge ${level}">${title}</span>
+                    </div>
+                    <div class="modules-grid">
+                        ${items.map(renderModuleCard).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderModuleCard(module) {
+            const isLocked = module.is_locked;
+            const contentClass = isLocked ? 'module-info-blur' : '';
+            const onClick = isLocked ? '' : `onclick="goToModule(${module.id})"`;
+
+            // "Même DA" -> Button says Continuer, same style structure
+            const buttonText = 'Continuer';
+            // If unlocked and never started, it's usually "Commencer" but consistent "Continuer" is fine or logic:
+            const realButtonText = (module.completed_lessons === 0 && !isLocked) ? 'Commencer' : 'Continuer';
+
+            let overlayHtml = '';
+            if (isLocked) {
+                overlayHtml = `
+                    <div class="lock-reason-popup">
+                        <div class="lock-icon-lg">${ICONS.lock}</div>
+                        <div class="lock-text">${module.lock_reason}</div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="module-card ${isLocked ? 'locked' : ''}" ${onClick} style="position: relative; display: flex; flex-direction: column; justify-content: space-between;">
+                    
+                    <!-- Content Wrapper -->
+                    <div class="${contentClass}" style="flex: 1;">
+                        <div class="module-icon" style="color: var(--primary);">
+                            ${ICONS[module.icon] || ICONS['default']}
+                        </div>
+                        <div class="module-title">${module.title}</div>
+                        <div class="module-description">${module.description}</div>
+                        <div class="module-meta">
+                            <span style="display: flex; align-items: center; gap: 0.25rem;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> 
+                                ${module.lesson_count} leçons
+                            </span>
+                            <span class="level-badge ${module.level}">${({ 'beginner': 'Débutant', 'intermediate': 'Intermédiaire', 'advanced': 'Avancé' }[module.level] || module.level.charAt(0).toUpperCase() + module.level.slice(1))}</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill ${module.progress_percentage === 100 ? 'completed' : ''}" style="width: ${module.progress_percentage}%"></div>
+                            </div>
+                            <div class="progress-text">${module.progress_percentage}% terminé</div>
+                        </div>
+                    </div>
+
+                    <!-- Overlay (Visible only if locked) -->
+                    ${overlayHtml}
+
+                    <!-- Button (Always visible/sharp, but disabled if locked) -->
+                    <div style="margin-top: 1.5rem; z-index: 5;">
+                        <button class="module-button" ${isLocked ? 'disabled' : ''} 
+                                style="${isLocked ? 'background: #e0e0e0; color: #a0a0a0; cursor: not-allowed;' : ''}" 
+                                onclick="event.stopPropagation(); goToModule(${module.id})">
+                            ${realButtonText}
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function goToModule(moduleId) {
+            window.location.href = `/module.html?id=${moduleId}`;
+        }
+
+        function showInfo() {
+            document.getElementById('infoModal').style.display = 'block';
+        }
+
+        function hideInfo() {
+            document.getElementById('infoModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('infoModal');
+            if (event.target == modal) {
+                hideInfo();
+            }
+        }
+
+        // User dropdown menu functions
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = event.currentTarget.closest('.user-menu');
+            menu.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function (e) {
+            if (!e.target.closest('.user-menu')) {
+                document.querySelectorAll('.user-menu.active').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+            }
+        });
+
+        async function loadUserName() {
+            try {
+                const user = await api.getMe();
+                const nameElement = document.getElementById('user-menu-name');
+                if (user && user.full_name) {
+                    nameElement.textContent = user.full_name;
+                }
+            } catch (err) {
+                console.warn('Could not load user name:', err);
+            }
+        }
+
+        loadData();
+        loadUserName();
+    </script>
+    <script src="/static/js/cookie-consent.js"></script>
+
+</body>
+
+</html>

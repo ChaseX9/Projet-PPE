@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bibliothèque d'investissement - CapInvest</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=8">
+    <style>
+        .explorer-banner {
+            background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .explorer-banner::after {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 150px;
+            height: 150px;
+            background: var(--primary);
+            filter: blur(80px);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .asset-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            cursor: pointer;
+            transition: all var(--transition-base);
+        }
+
+        .asset-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-sparkline {
+            height: 60px;
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .takeaway-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+
+        .takeaway-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .takeaway-item svg {
+            color: var(--primary);
+            flex-shrink: 0;
+            margin-top: 0.2rem;
+        }
+
+        .profile-badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .badge-profile {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+        }
+
+        .badge-profile.active {
+            background: var(--primary-bg);
+            border-color: var(--primary);
+            color: var(--primary-light);
+        }
+
+        /* Collapsible Filter Bar */
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+
+        .filter-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .filter-toggle-btn:hover {
+            border-color: var(--primary-light);
+            background: var(--bg-secondary);
+        }
+
+        .filter-toggle-btn svg.chevron {
+            transition: transform 0.3s ease;
+        }
+
+        .filter-section.active .filter-toggle-btn {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-color: var(--primary);
+        }
+
+        .filter-section.active .filter-toggle-btn svg.chevron {
+            transform: rotate(180deg);
+        }
+
+        .filter-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease;
+            opacity: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-top: none;
+            border-bottom-left-radius: var(--radius-md);
+            border-bottom-right-radius: var(--radius-md);
+        }
+
+        .filter-section.active .filter-content {
+            max-height: 500px;
+            opacity: 1;
+            padding: 1.25rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 160px;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/espace_perso.html" class="nav-brand">
+                <img src="/static/images/capinvest_logo.png" alt="Logo" class="nav-logo">
+                <span>CapInvest</span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <div class="nav-links">
+                    <a href="/espace_perso.html">Tableau de Bord</a>
+                    <a href="/explorer.html" class="active">Explorer</a>
+                    <a href="/nouvel_invest.html">Nouvel Investissement</a>
+                    <a href="/suivi_invest.html">Suivi</a>
+                    <a href="/academy.html">Academy</a>
+                </div>
+                <!-- User Profile Dropdown -->
+                <div class="user-menu" onclick="toggleUserMenu(event)">
+                    <div class="user-menu-trigger">
+                        <span id="user-menu-name">Mon Profil</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="user-menu-dropdown" id="user-dropdown">
+                        <a href="/mon_profil.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Mon Profil
+                        </a>
+                        <a href="/gestion_donnees.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Gestion de mes Données
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="api.logout(); return false;" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="explorer-banner">
+            <h1 style="margin-bottom: 0.75rem;">Bibliothèque d'investissement</h1>
+            <p class="text-muted" style="max-width: 800px; font-size: 1rem;">
+                Cette bibliothèque présente les principaux actifs que CapInvest utilise dans ses recommandations.
+                Notre objectif est de vous offrir une transparence totale sur les supports sélectionnés pour leur
+                liquidité,
+                leur diversification et leur pertinence pédagogique.
+            </p>
+            <div
+                style="margin-top: 1.5rem; display: flex; align-items: center; gap: 0.6rem; color: var(--accent); font-size: 0.85rem; font-weight: 500;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                Outil éducatif — CapInvest n'est pas une plateforme de trading.
+            </div>
+        </div>
+
+        <div class="filter-section" id="filter-section">
+            <button class="filter-toggle-btn" onclick="toggleFilterMenu()">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 3H2l8 9v7l4 2v-9L22 3z"></path>
+                    </svg>
+                    <span>Recherche & Filtres</span>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    class="chevron">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </button>
+            <div class="filter-content">
+                <div class="filter-bar">
+                    <div class="filter-group" style="flex-grow: 1; min-width: 280px;">
+                        <label>Rechercher un actif</label>
+                        <div style="position: relative;">
+                            <input type="text" id="search-asset" placeholder="Nom ou ticker (ex: Apple, VT...)"
+                                oninput="applyFilters()" style="padding-left: 2.5rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)"
+                                stroke-width="2.5"
+                                style="position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%);">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Type d'actif</label>
+                        <select id="filter-type" onchange="applyFilters()">
+                            <option value="all">Tous les types</option>
+                            <option value="ETF">ETF (Paniers d'actifs)</option>
+                            <option value="STOCK">Actions (Entreprises)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Zone Géographique</label>
+                        <select id="filter-zone" onchange="applyFilters()">
+                            <option value="all">Toutes les zones</option>
+                            <option value="Global">Monde</option>
+                            <option value="Europe">Europe</option>
+                            <option value="US">États-Unis</option>
+                            <option value="Emerging">Pays Émergents</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="min-width: 140px;">
+                        <label>Volatilité</label>
+                        <select id="filter-vol" onchange="applyFilters()">
+                            <option value="all">Tous niveaux</option>
+                            <option value="Faible">Faible</option>
+                            <option value="Modéré">Modérée</option>
+                            <option value="Élevé">Élevée</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="min-width: 130px;">
+                        <label>Label ESG</label>
+                        <select id="filter-esg" onchange="applyFilters()">
+                            <option value="all">Tout</option>
+                            <option value="true">Actifs ESG</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="assets-list" class="assets-grid">
+            <!-- Assets will be injected here -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+                <div class="loading-spinner" style="display: inline-block; width: 40px; height: 40px;"></div>
+                <p class="text-muted" style="margin-top: 1rem;">Chargement de l'univers d'actifs...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="asset-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <div id="modal-body">
+                <!-- Modal content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        let allAssets = [];
+
+        async function checkAuth() {
+            try {
+                const user = await api.getMe();
+                if (user && user.full_name) {
+                    document.getElementById('user-menu-name').textContent = user.full_name;
+                }
+                return user;
+            } catch (error) {
+                console.error('Auth error:', error);
+                window.location.href = '/login.html';
+                return null;
+            }
+        }
+
+        async function init() {
+            const user = await checkAuth();
+            if (!user) return;
+
+            try {
+                const fetchPromise = api.getExplorerAssets();
+                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 45000));
+
+                allAssets = await Promise.race([fetchPromise, timeoutPromise]);
+                renderAssets(allAssets);
+            } catch (error) {
+                console.error('API Error:', error);
+                let message = "Erreur lors du chargement des actifs. Veuillez réessayer plus tard.";
+                if (error.message === 'TIMEOUT') {
+                    message = "Le serveur met trop de temps à répondre (Timeout). Veuillez rafraîchir la page.";
+                } else if (error.status === 401) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                document.getElementById('assets-list').innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--danger);">
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">Oups ! Un problème est survenu.</p>
+                        <p style="font-size: 0.9rem; opacity: 0.8;">${message}</p>
+                        <button onclick="location.reload()" class="btn-secondary" style="margin-top: 1.5rem;">Réessayer</button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderAssets(assets) {
+            const list = document.getElementById('assets-list');
+            if (assets.length === 0) {
+                list.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+                        <p class="text-muted">Aucun actif ne correspond à vos filtres.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = assets.map(asset => `
+                <div class="card asset-card" onclick="openModal('${asset.ticker}')">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <span class="badge ${asset.asset_type === 'ETF' ? 'badge-etf' : 'badge-stock'}">${asset.asset_type}</span>
+                        ${asset.is_esg ? '<span class="badge badge-esg">ESG</span>' : ''}
+                    </div>
+                    <h3 style="margin-bottom: 0.25rem; color: var(--text-main);">${asset.name}</h3>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+                        ${asset.ticker} • ${asset.geography}
+                    </div>
+                    <div class="card-sparkline">
+                        <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60"></canvas>
+                    </div>
+                    <p class="text-muted" style="font-size: 0.85rem; line-height: 1.4; flex-grow: 1;">
+                        ${asset.pedagogy_short}
+                    </p>
+                    <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Volatilité : <span style="color: ${getVolColor(asset.volatility_level)}; font-weight: 600;">${asset.volatility_level}</span></span>
+                        <span class="text-muted" style="font-size: 0.75rem;">Détails →</span>
+                    </div>
+                </div>
+            `).join('');
+
+            assets.forEach(asset => {
+                if (asset.has_sparkline) {
+                    drawSparkline(`spark-${asset.ticker.replace(/\./g, '-')}`, asset.sparkline);
+                }
+            });
+        }
+
+        function getVolColor(level) {
+            if (level === 'Faible') return 'var(--success)';
+            if (level === 'Modéré') return 'var(--warning)';
+            return 'var(--danger)';
+        }
+
+        function drawSparkline(canvasId, points) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 5;
+
+            ctx.clearRect(0, 0, width, height);
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, 'rgba(74, 144, 164, 0.4)');
+            gradient.addColorStop(1, 'rgba(74, 144, 164, 0)');
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#4A90A4';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+
+            const step = width / (points.length - 1);
+            points.forEach((p, i) => {
+                const x = i * step;
+                const y = height - (p * (height - padding * 2) + padding);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            ctx.lineTo(width, height);
+            ctx.lineTo(0, height);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+        }
+
+        function applyFilters() {
+            const searchQuery = document.getElementById('search-asset').value.toLowerCase().trim();
+            const type = document.getElementById('filter-type').value;
+            const zone = document.getElementById('filter-zone').value;
+            const vol = document.getElementById('filter-vol').value;
+            const esg = document.getElementById('filter-esg').value;
+
+            const filtered = allAssets.filter(asset => {
+                if (searchQuery) {
+                    const matchesName = asset.name.toLowerCase().includes(searchQuery);
+                    const matchesTicker = asset.ticker.toLowerCase().includes(searchQuery);
+                    if (!matchesName && !matchesTicker) return false;
+                }
+                if (type !== 'all' && asset.asset_type !== type) return false;
+                if (zone !== 'all' && asset.geography !== zone) return false;
+                if (vol !== 'all' && asset.volatility_level !== vol) return false;
+                if (esg !== 'all' && asset.is_esg.toString() !== esg) return false;
+                return true;
+            });
+            renderAssets(filtered);
+        }
+
+        function openModal(ticker) {
+            const asset = allAssets.find(a => a.ticker === ticker);
+            if (!asset) return;
+
+            const modal = document.getElementById('asset-modal');
+            const body = document.getElementById('modal-body');
+
+            const profilesHtml = asset.suitable_profiles.map(p => `<span class="badge-profile active">${p}</span>`).join('');
+            const takeawaysHtml = asset.key_takeaways.map(t => `
+                <div class="takeaway-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>${t}</span>
+                </div>
+            `).join('');
+
+            body.innerHTML = `
+                <div style="display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 2rem;">
+                    <div style="flex-grow: 1;">
+                        <span class="badge ${asset.asset_type === 'ETF' ? 'badge-etf' : 'badge-stock'}" style="margin-bottom: 0.5rem;">${asset.asset_type}</span>
+                        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">${asset.name}</h2>
+                        <div class="text-muted" style="font-weight: 500;">${asset.ticker} • ${asset.geography}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.25rem;">Niveau de risque</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: ${getVolColor(asset.volatility_level)};">${asset.volatility_level}</div>
+                    </div>
+                </div>
+                <div class="grid" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2.5rem;">
+                    <div>
+                        <h4 style="color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.05em;">Qu'est-ce que c'est ?</h4>
+                        <p style="margin-bottom: 1.5rem; font-size: 1rem;">${asset.pedagogy_long}</p>
+                        <h4 style="color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.05em;">À quoi sert cet actif ?</h4>
+                        <p style="margin-bottom: 1.5rem;">${asset.utility}</p>
+                        <div style="background: var(--bg-secondary); padding: 1.25rem; border-radius: var(--radius-md); border-left: 3px solid var(--accent);">
+                            <h4 style="margin-bottom: 0.75rem;">Pourquoi CapInvest le sélectionne ?</h4>
+                            <p class="text-muted" style="margin: 0;">${asset.why_capinvest}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="text-transform: uppercase; letter-spacing: 0.05em;">Ce qu'il faut retenir</h4>
+                        <div class="takeaway-list">${takeawaysHtml}</div>
+                        <h4 style="text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2rem;">Profils adaptés</h4>
+                        <div class="profile-badges">${profilesHtml}</div>
+                        <div style="margin-top: 2rem; padding: 1rem; border: 1px dashed var(--border); border-radius: var(--radius-sm);">
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0; line-height: 1.4;">
+                                Cet actif peut apparaître dans les portefeuilles générés par CapInvest selon votre profil et vos objectifs.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('asset-modal').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('asset-modal');
+            if (event.target == modal) {
+                closeModal();
+            }
+            if (!event.target.closest('.user-menu')) {
+                document.querySelectorAll('.user-menu.active').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+            }
+        }
+
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = event.currentTarget.closest('.user-menu');
+            menu.classList.toggle('active');
+        }
+
+        function toggleFilterMenu() {
+            const section = document.getElementById('filter-section');
+            section.classList.toggle('active');
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

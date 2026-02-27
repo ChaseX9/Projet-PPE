@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nouvel Investissement - Robo-Advisor</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Smart Suggestions Styles */
+        .coherence-indicator {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid;
+        }
+
+        .coherence-excellent {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .coherence-good {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .coherence-needs_reflection {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .suggestion-box {
+            margin-top: 0.75rem;
+            padding: 1rem;
+            border-radius: 6px;
+            background: rgba(37, 99, 235, 0.05);
+            border-left: 4px solid var(--primary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .suggestion-box strong {
+            color: var(--primary);
+        }
+
+        .suggestion-actions {
+            margin-top: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .suggestion-actions button {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo"><strong>Robo-Advisor</strong></div>
+        <div class="nav-links">
+            <a href="/espace_perso.html">Tableau de Bord</a>
+            <a href="/nouvel_invest.html" class="active">Nouvel Investissement</a>
+            <a href="/suivi_invest.html">Suivi</a>
+            <a href="/login.html" onclick="api.clearToken()">Déconnexion</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="questionnaire-step" class="step active">
+            <header style="margin-bottom: 2rem;">
+                <h1>Questionnaire MIF II</h1>
+                <p class="text-muted">Définissons le profil de l'investisseur.</p>
+            </header>
+
+            <!-- Coherence Indicator -->
+            <div id="coherence-indicator" class="coherence-indicator" style="display: none;">
+                <strong id="coherence-message">Profil très cohérent</strong>
+            </div>
+
+            <div class="card">
+                <form id="invest-form" onsubmit="handleRecommendation(event)">
+                    <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="form-section">
+                            <h4>Comment évalueriez-vous votre connaissance des placements ?</h4>
+                            <select id="knowledge" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="novice">Novice</option>
+                                <option value="intermediate">Intermédiaire</option>
+                                <option value="expert">Expert</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Avez-vous déjà investi par le passé ?</h4>
+                            <select id="experience" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="none">Aucune</option>
+                                <option value="some">Quelques opérations</option>
+                                <option value="extensive">Expérience régulière</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Objectif d'investissement</h4>
+                            <select id="goal" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="retirement">Retraite</option>
+                                <option value="wealth_growth">Croissance du capital</option>
+                                <option value="project">Projet (Immobilier, etc.)</option>
+                                <option value="safety">Sécurité / Préservation</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Horizon de placement</h4>
+                            <select id="horizon" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="short">Court terme (< 3 ans)</option>
+                                <option value="medium">Moyen terme (3-8 ans)</option>
+                                <option value="long">Long terme (> 8 ans)</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Montant initial</h4>
+                            <select id="investment_amount" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="under_100">Moins de 100 €</option>
+                                <option value="100_to_500">Entre 100 € et 500 €</option>
+                                <option value="500_to_1000">Entre 500 € et 1 000 €</option>
+                                <option value="over_1000">Plus de 1 000 €</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Capacité de perte</h4>
+                            <select id="loss_capacity" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="none">Aucune</option>
+                                <option value="small">Faible (< 10%)</option>
+                                <option value="medium">Moyenne (10-25%)</option>
+                                <option value="high">Élevée (> 25%)</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Tolérance au risque</h4>
+                            <select id="risk_tolerance" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="low">Faible</option>
+                                <option value="medium">Modérée</option>
+                                <option value="high">Élevée</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Mode d'investissement</h4>
+                            <select id="investment_mode" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="one_time">Versement unique</option>
+                                <option value="recurring">Versement mensuel</option>
+                                <option value="both">Les deux</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="views-section"
+                        style="display: none; margin-top: 1rem; padding: 1.5rem; border: 1px solid var(--primary); border-radius: 8px; background: #eff6ff;">
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;">Vues de marché (optionnel)</h4>
+                        <div id="views-container">
+                            <!-- View rows will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-outline"
+                            style="margin-top: 1rem; width: 100%; border-style: dashed;" onclick="addViewRow()">+
+                            Ajouter une vue</button>
+                    </div>
+
+                    <div
+                        style="margin-top: 1rem; padding: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="esg" style="width: auto; margin: 0;">
+                            <span>Priorité Investissement Responsable (ESG)</span>
+                            <span class="help-icon"
+                                data-tooltip="Filtre les actifs selon des critères Environnementaux, Sociaux et de Gouvernance pour un impact positif.">i</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="use_bl" style="width: auto; margin: 0;"
+                                onchange="toggleViewsSection()">
+                            <span>Activer l'optimisation avancée (Black-Litterman) - <small>Réservé aux
+                                    experts</small></span>
+                            <span class="help-icon"
+                                data-tooltip="Modèle avancé permettant d'intégrer vos propres vues de marché à l'équilibre classique de Markowitz.">i</span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%;">
+                            <span>Générer la recommandation</span>
+                            <span class="loading-spinner" id="loading-spinner"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="result-step" class="step">
+            <header style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>Votre Recommandation</h1>
+                    <p class="text-muted" id="profile-result">Calculée selon les normes MiFID II</p>
+                </div>
+                <button class="btn btn-outline" onclick="location.reload()">Nouvelle analyse</button>
+            </header>
+
+            <div class="grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div>
+                    <div class="card">
+                        <h3>Composition du Portefeuille</h3>
+                        <p class="text-muted" id="method-display" style="font-size: 0.8rem; margin-bottom: 1rem;"></p>
+                        <div id="position-list" class="position-grid"></div>
+                    </div>
+
+                    <!-- Portfolio Explanation Section -->
+                    <div class="card" style="margin-top: 2rem; display: none;" id="explanation-card">
+                        <h3>✨ Comprendre votre portefeuille</h3>
+                        <p id="portfolio-explanation" style="line-height: 1.6; margin-top: 1rem;"></p>
+
+                        <div id="views-impact-section"
+                            style="margin-top: 1.5rem; display: none; padding: 1rem; background: rgba(var(--primary-rgb), 0.05); border-left: 4px solid var(--primary); border-radius: 4px;">
+                            <strong>🎯 Impact de vos prévisions de marché</strong>
+                            <p id="views-impact-text"
+                                style="font-size: 0.85rem; margin-top: 0.5rem; font-style: italic;"></p>
+                        </div>
+                    </div>
+
+                    <!-- Decision Buttons -->
+                    <div class="card" style="margin-top: 2rem; display: none;" id="decision-card">
+                        <h3>Que souhaitez-vous faire ?</h3>
+                        <p class="text-muted" style="font-size: 0.9rem; margin: 1rem 0;">
+                            Vous pouvez valider ce portefeuille, demander une proposition alternative, ou annuler.
+                        </p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                            <button class="btn btn-primary" onclick="acceptPortfolio()" id="accept-btn">
+                                ✅ Garder ce portefeuille
+                            </button>
+                            <button class="btn btn-outline" onclick="regeneratePortfolio()" id="regenerate-btn">
+                                🔁 Autre proposition
+                            </button>
+                            <button class="btn btn-outline" onclick="rejectPortfolio()" id="reject-btn"
+                                style="color: var(--danger); border-color: var(--danger);">
+                                ❌ Annuler
+                            </button>
+                        </div>
+
+                        <p class="text-muted" style="font-size: 0.8rem; margin-top: 1rem; text-align: center;">
+                            💡 Aucune décision n'est définitive. Vous pouvez toujours consulter vos choix dans
+                            l'historique.
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <h3>Indicateurs Clés</h3>
+                        <div style="margin-top: 1rem;">
+                            <p class="text-muted">
+                                Rendement annuel attendu
+                                <span class="help-icon"
+                                    data-tooltip="Performance moyenne estimée par an. Attention, les performances passées ne présagent pas des performances futures.">i</span>
+                            </p>
+                            <p style="font-size: 1.5rem; font-weight: 700;" id="perf-return">-</p>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <p class="text-muted">
+                                Volatilité (Risque)
+                                <span class="help-icon"
+                                    data-tooltip="Mesure l'intensité des variations. Plus elle est élevée, plus le potentiel de gain est fort, mais plus le risque de perte l'est aussi.">i</span>
+                            </p>
+                            <p style="font-size: 1.5rem; font-weight: 700;" id="perf-vol">-</p>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <p class="text-muted">
+                                Ratio de Sharpe
+                                <span class="help-icon"
+                                    data-tooltip="Indique si le risque pris est bien récompensé par le rendement. Un ratio supérieur à 1 est considéré comme performant.">i</span>
+                            </p>
+                            <p style="font-size: 1.5rem; font-weight: 700;" id="perf-sharpe">-</p>
+                        </div>
+                    </div>
+
+                    <div class="card" id="profile-recap-card" style="display: none;">
+                        <h3>Votre Profil</h3>
+                        <div id="profile-recap-list"
+                            style="font-size: 0.9rem; margin-top: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        </div>
+                    </div>
+
+                    <div class="card" id="coherence-card" style="display: none; border: 1px solid var(--warning);">
+                        <h3 style="color: var(--warning);">Alerte Cohérence</h3>
+                        <p id="coherence-msg" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js?v=2"></script>
+    <script>
+        let availableTickers = [];
+
+        async function initTickers() {
+            try {
+                const response = await api.fetchWithAuth('/api/recommandation/tickers');
+                if (response.ok) availableTickers = await response.json();
+            } catch (err) { console.error("Could not load tickers", err); }
+        }
+        initTickers();
+
+        function toggleViewsSection() {
+            const isExpert = document.getElementById('knowledge').value === 'expert';
+            const blCheckbox = document.getElementById('use_bl');
+
+            // If not expert, force uncheck and disable the checkbox
+            if (!isExpert) {
+                blCheckbox.checked = false;
+                blCheckbox.disabled = true;
+                if (blCheckbox.parentElement) {
+                    blCheckbox.parentElement.style.opacity = '0.5';
+                    blCheckbox.parentElement.style.cursor = 'not-allowed';
+                }
+            } else {
+                blCheckbox.disabled = false;
+                if (blCheckbox.parentElement) {
+                    blCheckbox.parentElement.style.opacity = '1';
+                    blCheckbox.parentElement.style.cursor = 'pointer';
+                }
+            }
+
+            const blChecked = blCheckbox.checked;
+            const section = document.getElementById('views-section');
+
+            // Toggle section visibility
+            section.style.display = (isExpert && blChecked) ? 'block' : 'none';
+
+            // If section is being hidden, clear views to avoid accidental submission
+            if (section.style.display === 'none') {
+                const container = document.getElementById('views-container');
+                if (container) container.innerHTML = '';
+            }
+        }
+
+        // Add visibility check on expertise change too
+        document.getElementById('knowledge').addEventListener('change', toggleViewsSection);
+
+        function addViewRow() {
+            const container = document.getElementById('views-container');
+            const row = document.createElement('div');
+            row.className = 'view-row';
+            row.style = "display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.5rem; margin-bottom: 0.5rem; align-items: end;";
+
+            let tickerOptions = availableTickers.map(t => `<option value="${t.ticker}">${t.ticker} - ${t.name}</option>`).join('');
+
+            row.innerHTML = `
+                <div>
+                    <label style="font-size: 0.75rem;">Actif</label>
+                    <select class="v-ticker">${tickerOptions}</select>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem;">Direction</label>
+                    <select class="v-direction">
+                        <option value="bullish">Haussier</option>
+                        <option value="neutral">Neutre</option>
+                        <option value="bearish">Baissier</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem;">Confiance</label>
+                    <select class="v-confidence">
+                        <option value="low">Faible</option>
+                        <option value="medium">Moyenne</option>
+                        <option value="high">Forte</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-outline" style="padding: 0.5rem; color: var(--danger); border-color: var(--danger);" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        let currentPortfolioId = null;
+        let lastFormData = null; // Cache form data for regeneration
+
+        async function handleRecommendation(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const spinner = document.getElementById('loading-spinner');
+
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            try {
+                const views = [];
+                document.querySelectorAll('.view-row').forEach(row => {
+                    views.push({
+                        ticker: row.querySelector('.v-ticker').value,
+                        direction: row.querySelector('.v-direction').value,
+                        confidence: row.querySelector('.v-confidence').value
+                    });
+                });
+
+                const payload = {
+                    investment_goal: document.getElementById('goal').value,
+                    horizon: document.getElementById('horizon').value,
+                    risk_tolerance: document.getElementById('risk_tolerance').value,
+                    loss_capacity: document.getElementById('loss_capacity').value,
+                    knowledge_level: document.getElementById('knowledge').value,
+                    experience: document.getElementById('experience').value,
+                    investment_amount: document.getElementById('investment_amount').value,
+                    investment_mode: document.getElementById('investment_mode').value,
+                    esg_preference: document.getElementById('esg').checked,
+                    liquidity_need: document.getElementById('liquidity') ? document.getElementById('liquidity').checked : false,
+                    use_black_litterman: document.getElementById('use_bl').checked,
+                    market_views: views.length > 0 ? views : null
+                };
+
+                // Cache form data for regeneration
+                lastFormData = payload;
+
+                const res = await api.post('/api/recommandation', payload);
+                displayResult(res);
+            } catch (err) {
+                alert('Erreur: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+
+        function displayResult(res) {
+            currentPortfolioId = res.portfolio_id; // Save for decision actions
+
+            document.getElementById('questionnaire-step').classList.remove('active');
+            document.getElementById('result-step').classList.add('active');
+
+            // Profile
+            document.getElementById('profile-result').innerHTML = `Profil ${res.profile.risk_profile} - Score Risque: ${res.profile.risk_score} <span class="help-icon" data-tooltip="Cette note de 0 à 1 résume votre tolérance au risque. Plus elle est proche de 1, plus vous acceptez les variations pour chercher du rendement.">i</span>`;
+            document.getElementById('method-display').innerHTML = `Méthode d'optimisation : ${res.portfolio.optimization_method} <span class="help-icon" data-tooltip="L'algorithme mathématique utilisé (Markowitz ou Black-Litterman) pour trouver la meilleure répartition de vos actifs.">i</span>`;
+
+            // Profile recap with French translations
+            if (res.profile.raw_responses) {
+                const recap = document.getElementById('profile-recap-card');
+                const list = document.getElementById('profile-recap-list');
+                recap.style.display = 'block';
+                const r = res.profile.raw_responses;
+
+                const labels = {
+                    'investment_goal': 'Objectif',
+                    'horizon': 'Horizon',
+                    'risk_tolerance': 'Tolérance Risque',
+                    'investment_amount': 'Montant Initial',
+                    'investment_mode': 'Mode d\'Invest.'
+                };
+
+                const translations = {
+                    'retirement': 'Retraite',
+                    'wealth_growth': 'Croissance du capital',
+                    'project': 'Projet',
+                    'safety': 'Sécurité / Préservation',
+                    'short': 'Court terme (< 3 ans)',
+                    'medium': 'Moyen terme (3-8 ans)',
+                    'long': 'Long terme (> 8 ans)',
+                    'low': 'Faible',
+                    'medium': 'Modérée',
+                    'high': 'Élevée',
+                    'under_100': 'Moins de 100 €',
+                    '100_to_500': '100-500 €',
+                    '500_to_1000': '500-1000 €',
+                    'over_1000': 'Plus de 1000 €',
+                    'one_time': 'Versement unique',
+                    'recurring': 'Versement mensuel',
+                    'both': 'Les deux'
+                };
+
+                list.innerHTML = Object.entries(labels).map(([key, label]) => {
+                    const value = r[key];
+                    const translated = translations[value] || value?.replace(/_/g, ' ') || '-';
+                    return `
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--bg-secondary); padding-bottom: 0.3rem;">
+                            <span class="text-muted">${label}</span>
+                            <span style="font-weight: 600; color: var(--text-main);">${translated}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (res.portfolio.processed_views && Object.keys(res.portfolio.processed_views).length > 0) {
+                const section = document.getElementById('views-impact-section');
+                const text = document.getElementById('views-impact-text');
+                section.style.display = 'block';
+
+                const impacts = Object.entries(res.portfolio.processed_views).map(([ticker, shift]) => {
+                    const direction = shift > 0 ? "augmentée" : "réduite";
+                    return `L'exposition à <strong>${ticker}</strong> a été ${direction} selon vos vues de marché.`;
+                }).join('<br>');
+
+                text.innerHTML = impacts;
+            }
+
+            // Coherence
+            const flags = Object.values(res.profile.coherence_flags);
+            if (flags.length > 0) {
+                const card = document.getElementById('coherence-card');
+                card.style.display = 'block';
+                document.getElementById('coherence-msg').textContent = flags.join(' ');
+            }
+
+            // Performance with contextual tooltips
+            const returnPct = (res.portfolio.expected_return * 100).toFixed(2);
+            const volPct = (res.portfolio.volatility * 100).toFixed(2);
+            const sharpe = res.portfolio.sharpe_ratio.toFixed(2);
+
+            document.getElementById('perf-return').textContent = returnPct + '%';
+            document.getElementById('perf-vol').textContent = volPct + '%';
+            document.getElementById('perf-sharpe').textContent = sharpe;
+
+            // Update tooltips dynamically with contextual interpretation
+            const returnTooltip = document.querySelector('[data-tooltip*="Performance moyenne"]');
+            if (returnTooltip) {
+                let interpretation = '';
+                const retNum = parseFloat(returnPct);
+                if (retNum < 3) interpretation = 'Ce rendement est conservateur, adapté à la préservation du capital.';
+                else if (retNum < 8) interpretation = 'Ce rendement est modéré, équilibrant croissance et sécurité.';
+                else interpretation = 'Ce rendement est ambitieux, visant une forte croissance.';
+                returnTooltip.setAttribute('data-tooltip', `${returnPct}% par an en moyenne. ${interpretation} Les performances passées ne garantissent pas les résultats futurs.`);
+            }
+
+            const volTooltip = document.querySelector('[data-tooltip*="intensité des variations"]');
+            if (volTooltip) {
+                let interpretation = '';
+                const volNum = parseFloat(volPct);
+                if (volNum < 10) interpretation = 'Risque faible : vos placements varieront peu.';
+                else if (volNum < 20) interpretation = 'Risque modéré : des variations mesurées qui correspondent à votre profil.';
+                else interpretation = 'Risque élevé : fortes variations possibles, mais potentiel de gains plus important.';
+                volTooltip.setAttribute('data-tooltip', `${volPct}% de volatilité. ${interpretation}`);
+            }
+
+            const sharpeTooltip = document.querySelector('[data-tooltip*="récompensé par le rendement"]');
+            if (sharpeTooltip) {
+                let interpretation = '';
+                const sharpeNum = parseFloat(sharpe);
+                if (sharpeNum < 0.5) interpretation = 'Le rendement ne compense pas suffisamment le risque pris.';
+                else if (sharpeNum < 1) interpretation = 'Bon équilibre entre risque et rendement.';
+                else interpretation = 'Excellent : chaque point de risque est bien récompensé par le rendement.';
+                sharpeTooltip.setAttribute('data-tooltip', `Ratio de ${sharpe}. ${interpretation}`);
+            }
+
+            // Positions with explanations
+            const list = document.getElementById('position-list');
+            list.innerHTML = '';
+            res.portfolio.positions.sort((a, b) => b.weight - a.weight).forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'asset-card';
+
+                let explanationHtml = '';
+                if (p.explanation) {
+                    explanationHtml = `
+                        <details style="margin-top: 0.75rem; font-size: 0.85rem; background: var(--bg-secondary); padding: 0.5rem; border-radius: 4px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--primary);">ℹ️ Pourquoi cet actif ?</summary>
+                            <div style="margin-top: 0.5rem; line-height: 1.5;">
+                                <p style="margin: 0.5rem 0;"><strong>Identification :</strong> ${p.explanation.identification}</p>
+                                <p style="margin: 0.5rem 0;"><strong>Fiabilité :</strong> ${p.explanation.reliability}</p>
+                                <p style="margin: 0.5rem 0;"><strong>Rôle :</strong> ${p.explanation.role}</p>
+                            </div>
+                        </details>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <span class="badge badge-${p.asset_type.toLowerCase()}">${p.asset_type}</span>
+                        ${p.asset_class === 'ESG' ? '<span class="badge badge-esg">ESG <span class="help-icon" style="color:white; border-color:white; font-size:10px; padding:0 3px;" data-tooltip="Cet actif respecte des critères Environnementaux, Sociaux et de Gouvernance.">i</span></span>' : ''}
+                    </div>
+                    <div style="font-weight: 700; font-size: 1.1rem;">${p.ticker}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); height: 2.5rem; overflow: hidden;">${p.name}</div>
+                    <div class="asset-weight" style="margin-top: 1rem;">${(p.weight * 100).toFixed(2)}%</div>
+                    ${explanationHtml}
+                `;
+                list.appendChild(card);
+            });
+
+            // Portfolio explanation
+            if (res.portfolio.portfolio_explanation) {
+                document.getElementById('explanation-card').style.display = 'block';
+                document.getElementById('portfolio-explanation').innerHTML = res.portfolio.portfolio_explanation;
+            }
+
+            // Show decision buttons
+            document.getElementById('decision-card').style.display = 'block';
+        }
+
+        async function acceptPortfolio() {
+            if (!currentPortfolioId) {
+                alert('Aucun portefeuille à accepter');
+                return;
+            }
+
+            try {
+                const response = await api.post(`/api/portfolios/${currentPortfolioId}/accept`);
+                alert('✅ Portefeuille enregistré avec succès !');
+                window.location.href = '/suivi_invest.html';
+            } catch (err) {
+                alert('Erreur lors de l\'acceptation : ' + err.message);
+            }
+        }
+
+        async function regeneratePortfolio() {
+            if (!lastFormData) {
+                alert('Erreur: Impossible de régénérer (données manquantes)');
+                return;
+            }
+
+            const btn = document.getElementById('regenerate-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Génération...';
+
+            try {
+                // Re-submit the SAME questionnaire to get a new portfolio
+                const res = await api.post('/api/recommandation', lastFormData);
+                displayResult(res);
+                // Note: No alert here to avoid interrupting the user flow
+            } catch (err) {
+                alert('Erreur lors de la régénération : ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔁 Autre proposition';
+            }
+        }
+
+        async function rejectPortfolio() {
+            if (!currentPortfolioId) {
+                window.location.href = '/espace_perso.html';
+                return;
+            }
+
+            try {
+                await api.post(`/api/portfolios/${currentPortfolioId}/reject`);
+                alert('❌ Proposition annulée.');
+                window.location.href = '/espace_perso.html';
+            } catch (err) {
+                alert('Erreur lors de l\'annulation : ' + err.message);
+                window.location.href = '/espace_perso.html';
+            }
+        }
+    </script>
+
+    <!-- Smart Suggestions Script -->
+    <script src="/static/js/smart-suggestions.js"></script>
+    <script>
+        // Field state tracking for SMART LOCK mechanism
+        const fieldStates = {
+            knowledge_level: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            experience: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            investment_goal: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            horizon: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            investment_amount: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            loss_capacity: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            risk_tolerance: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            investment_mode: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            }
+        };
+
+        // Flag to track programmatic changes (applySuggestion)
+        let isApplyingSuggestion = false;
+
+        // Initialize smart suggestions on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await smartSuggestions.init();
+            console.log('Smart suggestions initialized');
+
+            // Monitor form changes
+            const form = document.getElementById('invest-form');
+            const formFields = form.querySelectorAll('select, input');
+
+
+            formFields.forEach(field => {
+                field.addEventListener('change', (e) => {
+                    const fieldId = getFieldId(e.target.id);
+                    const currentValue = e.target.value;
+
+                    if (fieldId && fieldStates[fieldId]) {
+                        if (!isApplyingSuggestion) {
+                            // This is a MANUAL change
+                            fieldStates[fieldId].lockedFromUpstream = true;
+                            fieldStates[fieldId].lastManualChangeValue = currentValue;
+
+                            // Allow one warning for this new manual value
+                            if (fieldStates[fieldId].warningShownForValue !== currentValue) {
+                                fieldStates[fieldId].warningShownForValue = null;
+                            }
+
+                            console.log(`Manual change detected: ${fieldId} = ${currentValue}`);
+                            console.log(`Field ${fieldId} locked from upstream`);
+                        }
+                    }
+
+                    // Pass the edited field to updateSuggestions
+                    updateSuggestions(fieldId);
+                });
+            });
+
+            // Initial update
+            updateSuggestions();
+        });
+
+
+        // Helper to normalize field IDs
+        function getFieldId(domId) {
+            const mapping = {
+                'knowledge': 'knowledge_level',
+                'goal': 'investment_goal'
+            };
+            return mapping[domId] || domId;
+        }
+
+        // Helper to get DOM ID from field ID (inverse of getFieldId)
+        function getDOMId(fieldId) {
+            const reverseMapping = {
+                'knowledge_level': 'knowledge',
+                'investment_goal': 'goal'
+            };
+            return reverseMapping[fieldId] || fieldId;
+        }
+
+        function updateSuggestions(currentEditedField = null) {
+            // Collect current responses
+            const responses = {
+                investment_goal: document.getElementById('goal').value,
+                horizon: document.getElementById('horizon').value,
+                risk_tolerance: document.getElementById('risk_tolerance').value,
+                loss_capacity: document.getElementById('loss_capacity').value,
+                knowledge_level: document.getElementById('knowledge').value,
+                experience: document.getElementById('experience').value,
+                investment_amount: document.getElementById('investment_amount').value,
+                investment_mode: document.getElementById('investment_mode').value
+            };
+
+            // Update smart suggestions engine
+            smartSuggestions.updateResponses(responses);
+
+            // Update coherence indicator
+            const coherence = smartSuggestions.calculateCoherence();
+            const indicator = document.getElementById('coherence-indicator');
+            const message = document.getElementById('coherence-message');
+
+            if (coherence.totalCount > 0) {
+                indicator.style.display = 'block';
+                indicator.className = `coherence-indicator coherence-${coherence.status}`;
+
+                // Add icon based on status
+                let icon = '';
+                if (coherence.status === 'excellent') icon = '✅';
+                else if (coherence.status === 'good') icon = '👍';
+                else icon = '⚠️';
+
+                message.innerHTML = `${icon} ${coherence.message}`;
+            } else {
+                indicator.style.display = 'none';
+            }
+
+            // Display field suggestions with smart lock logic
+            displayFieldSuggestions(currentEditedField);
+
+            // Check for risk violations (MiFID II Compliance)
+            checkRiskViolation();
+        }
+
+        // Helper to compute max allowed risk based on MiFID II priority
+        function computeMaxAllowedRisk() {
+            const lossCapacity = document.getElementById('loss_capacity').value;
+            const horizon = document.getElementById('horizon').value;
+            const knowledge = document.getElementById('knowledge').value;
+
+            // MiFID II Priority 1: Loss Capacity (HARD CAP)
+            if (lossCapacity === 'none') {
+                return 'low';
+            } else if (lossCapacity === 'limited') {
+                //Can go to high ONLY if long horizon + expert
+                if (horizon === 'long' && knowledge === 'expert') {
+                    return 'high';
+                }
+                return 'medium';
+            } else if (lossCapacity === 'significant') {
+                return 'high';
+            }
+
+            return 'medium'; // Default
+        }
+
+        // Check if risk tolerance violates max allowed risk
+        function checkRiskViolation() {
+            const lossCapacity = document.getElementById('loss_capacity').value;
+            const riskTolerance = document.getElementById('risk_tolerance').value;
+            const container = document.getElementById('risk-warning-container');
+
+            if (!lossCapacity || !riskTolerance || !container) return;
+
+            const riskLevels = { low: 1, medium: 2, high: 3 };
+            const maxAllowed = computeMaxAllowedRisk();
+
+            if (riskLevels[riskTolerance] > riskLevels[maxAllowed]) {
+                // Violation detected
+                const riskLabels = { low: 'faible', medium: 'modéré', high: 'élevé' };
+                const capacityLabels = { none: 'aucune', limited: 'limitée', significant: 'significative' };
+
+                container.innerHTML = `
+                    <div class="alert alert-warning" style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 0.75rem; margin-top: 0.5rem;">
+                        <strong>⚠️ Attention :</strong> Vous avez indiqué une capacité de perte <strong>${capacityLabels[lossCapacity]}</strong>.
+                        Un risque <strong>${riskLabels[riskTolerance]}</strong> peut entraîner des pertes dépassant votre capacité financière.
+                        <br><small style="color: #856404;">Maximum recommandé : ${riskLabels[maxAllowed]}</small>
+                    </div>
+                `;
+            } else {
+                // No violation
+                container.innerHTML = '';
+            }
+        }
+
+        function displayFieldSuggestions(currentEditedField = null) {
+            const suggestions = smartSuggestions.evaluateSuggestions();
+
+            // Clear all previous suggestions
+            document.querySelectorAll('.suggestion-container').forEach(container => {
+                container.innerHTML = '';
+            });
+
+            // Group suggestions by field
+            const suggestionsByField = {};
+            suggestions.forEach(s => {
+                if (!suggestionsByField[s.field]) {
+                    suggestionsByField[s.field] = [];
+                }
+                suggestionsByField[s.field].push(s);
+            });
+
+            // Display suggestions for each field
+            for (const [field, fieldSuggestions] of Object.entries(suggestionsByField)) {
+                const state = fieldStates[field];
+                if (!state) continue;
+
+                // SMART LOCK LOGIC
+                const isUpstreamChange = (currentEditedField && currentEditedField !== field);
+
+                if (isUpstreamChange && state.lockedFromUpstream) {
+                    // Skip: this is an upstream change to a locked field
+                    console.log(`⛔ Blocking upstream suggestion for locked field: ${field}`);
+                    continue;
+                }
+
+                if (currentEditedField === field) {
+                    // This field was just manually changed
+                    const currentValue = document.getElementById(getDOMId(field)).value;
+
+                    if (state.warningShownForValue === currentValue) {
+                        // Already warned for this exact value
+                        console.log(`✓ Warning already shown for ${field}=${currentValue}`);
+                        continue;
+                    }
+
+                    // Allow ONE warning for this manual change
+                    console.log(`⚠️  Allowing warning for manual change: ${field}=${currentValue}`);
+                }
+
+                // Find the FIRST suggestion that is NOT followed
+                const suggestion = fieldSuggestions.find(s => !s.isFollowed);
+
+                // Only show if there's an unfollowed suggestion
+                if (suggestion) {
+                    // Find the container
+                    let containerId;
+                    if (field === 'investment_goal') containerId = 'goal';
+                    else if (field === 'investment_amount') containerId = 'investment_amount';
+                    else if (field === 'investment_mode') containerId = 'investment_mode';
+                    else containerId = field;
+
+                    const containerElement = document.getElementById(`suggestion-${containerId}`);
+                    if (!containerElement) {
+                        // Create container if it doesn't exist
+                        const fieldElement = document.getElementById(containerId);
+                        if (fieldElement && fieldElement.parentElement) {
+                            const newContainer = document.createElement('div');
+                            newContainer.id = `suggestion-${containerId}`;
+                            newContainer.className = 'suggestion-container';
+                            fieldElement.parentElement.appendChild(newContainer);
+                        }
+                    }
+
+                    const container = document.getElementById(`suggestion-${containerId}`);
+                    if (container) {
+                        // Format suggested values in French
+                        const valueLabels = {
+                            'low': 'Faible',
+                            'medium': 'Modéré(e)',
+                            'high': 'Élevé(e)',
+                            'short': 'Court terme',
+                            'long': 'Long terme',
+                            'retirement': 'Retraite',
+                            'wealth_growth': 'Croissance du capital',
+                            'project': 'Projet',
+                            'safety': 'Sécurité'
+                        };
+
+                        const suggestedText = suggestion.suggestedValues
+                            .map(v => valueLabels[v] || v)
+                            .join(' ou ');
+
+                        container.innerHTML = `
+                            <div class="suggestion-box">
+                                <strong>💡 Suggestion : ${suggestedText}</strong>
+                                <p style="margin: 0.5rem 0; line-height: 1.5;">${suggestion.explanation}</p>
+                                <div class="suggestion-actions">
+                                    <button type="button" class="btn-secondary" onclick="applySuggestion('${containerId}', '${suggestion.suggestedValues[0]}')">
+                                        Appliquer
+                                    </button>
+                                    <button type="button" class="btn-secondary" onclick="ignoreSuggestion('${containerId}')" style="background: var(--text-muted);">
+                                        Ignorer
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+
+                        // Mark warning as shown for manually changed field
+                        if (currentEditedField === field) {
+                            const currentValue = document.getElementById(getDOMId(field)).value;
+                            fieldStates[field].warningShownForValue = currentValue;
+                            console.log(`✓ Warning marked as shown for ${field}=${currentValue}`);
+                        }
+                    }
+                }
+            }
+        }
+
+        function applySuggestion(fieldId, value) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                // Set flag to distinguish from manual changes
+                isApplyingSuggestion = true;
+
+                field.value = value;
+
+                // CRITICAL: Smart lock after applying suggestion
+                const normalizedFieldId = getFieldId(fieldId);
+                if (normalizedFieldId && fieldStates[normalizedFieldId]) {
+                    fieldStates[normalizedFieldId].lockedFromUpstream = true;
+                    fieldStates[normalizedFieldId].warningShownForValue = value;
+                    console.log(`Field ${normalizedFieldId} locked from upstream after applying suggestion`);
+                }
+
+                isApplyingSuggestion = false;
+                field.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function ignoreSuggestion(fieldId) {
+            const container = document.getElementById(`suggestion-${fieldId}`);
+            if (container) {
+                container.innerHTML = '';
+            }
+        }
+    </script>
+</body>
+
+</html>

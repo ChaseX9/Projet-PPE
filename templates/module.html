@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module - CapInvest Academy</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=9">
+    <style>
+        .module-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .module-title-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .module-icon {
+            font-size: 3rem;
+        }
+
+        .module-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .module-description {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .lessons-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .lesson-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .lesson-card:hover {
+            transform: translateX(4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .lesson-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+            filter: grayscale(0.5);
+        }
+
+        .lesson-card.locked:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .lock-message {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger);
+            color: #F87171;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: none;
+            font-weight: 500;
+        }
+
+        .lesson-status-icon {
+            font-size: 1.5rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .lesson-content {
+            flex: 1;
+        }
+
+        .lesson-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .lesson-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.5rem;
+        }
+
+        .lesson-button {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .lesson-button:hover {
+            background: var(--secondary);
+        }
+
+        .lesson-button.completed {
+            background: #4caf50;
+        }
+
+        .lesson-score {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .celebration-banner {
+            background: var(--success-bg);
+            border: 2px solid var(--success);
+            color: #86EFAC;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .celebration-banner h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.5rem;
+        }
+
+        .celebration-banner p {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/espace_perso.html" class="nav-brand">
+                <img src="/static/images/capinvest_logo.png" alt="Logo" class="nav-logo">
+                <span>CapInvest</span>
+            </a>
+            <div class="nav-links">
+                <a href="/espace_perso.html">Tableau de Bord</a>
+                <a href="/explorer.html">Explorer</a>
+                <a href="/nouvel_invest.html">Nouvel Investissement</a>
+                <a href="/suivi_invest.html">Suivi</a>
+                <a href="/academy.html" class="active">Academy</a>
+                <a href="#" onclick="api.logout()">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 2rem;">
+        <a href="/academy.html" class="back-link">
+            ← Retour à l'Academy
+        </a>
+
+        <div id="content-area">
+            <div class="loading">Chargement du module...</div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        if (!api.isAuthenticated()) {
+            window.location.href = '/login.html';
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const moduleId = params.get('id');
+
+        if (!moduleId) {
+            window.location.href = '/academy.html';
+        }
+
+        async function loadModule() {
+            try {
+                const module = await api.get(`/api/training/modules/${moduleId}`);
+                renderModule(module);
+            } catch (error) {
+                console.error('Error loading module:', error);
+                document.getElementById('content-area').innerHTML =
+                    '<div class="loading">Erreur de chargement. <a href="/academy.html">Retour</a></div>';
+            }
+        }
+
+        function renderModule(module) {
+            const levelColors = {
+                beginner: '#4caf50',
+                intermediate: '#2196f3',
+                advanced: '#9c27b0'
+            };
+
+            const isAllCompleted = module.lessons.every(l => l.status === 'completed');
+
+            const html = `
+                <div id="celebration" class="celebration-banner" style="${isAllCompleted ? 'display: block;' : ''}">
+                    <h2>🎉 Félicitations !</h2>
+                    <p>Vous avez terminé toutes les leçons de cette formation.</p>
+                </div>
+
+                <div id="lock-banner" class="lock-message" style="${module.is_locked ? 'display: block;' : ''}">
+                    🔒 ${module.lock_reason || 'Ce module est verrouillé pour aujourd\'hui.'}
+                </div>
+
+                <div class="module-header" style="background: linear-gradient(135deg, ${levelColors[module.level]}, var(--secondary))">
+                    <div class="module-title-row">
+                        <span class="module-icon">${module.icon}</span>
+                        <h1 class="module-title">${module.title}</h1>
+                    </div>
+                    <p class="module-description">${module.description}</p>
+                </div>
+
+                <div class="lessons-list">
+                    ${module.lessons.map(renderLessonCard).join('')}
+                </div>
+            `;
+
+            document.getElementById('content-area').innerHTML = html;
+        }
+
+        function renderLessonCard(lesson) {
+            const statusIcons = {
+                not_started: '⚪',
+                in_progress: '🔵',
+                completed: '✅',
+                locked: '🔒'
+            };
+
+            const isLocked = lesson.status === 'locked';
+            const buttonText = isLocked ? 'Verrouillé' : (lesson.status === 'completed' ? 'Revoir' : 'Commencer');
+            const buttonClass = lesson.status === 'completed' ? 'completed' : '';
+            const scoreText = lesson.score !== null ? `Score: ${lesson.score}%` : '';
+            const onClick = isLocked ? '' : `onclick="goToLesson(${lesson.id})"`;
+
+            return `
+                <div class="lesson-card ${isLocked ? 'locked' : ''}" ${onClick}>
+                    <div class="lesson-status-icon">${statusIcons[lesson.status]}</div>
+                    <div class="lesson-content">
+                        <div class="lesson-title">${lesson.title}</div>
+                        <div class="lesson-meta">
+                            <span>⏱️ ${lesson.estimated_minutes} min</span>
+                            <span>⭐ ${lesson.xp_reward} XP</span>
+                        </div>
+                    </div>
+                    <div class="lesson-action">
+                        <button class="lesson-button ${buttonClass}" ${isLocked ? 'disabled' : ''} onclick="event.stopPropagation(); ${onClick}">
+                            ${buttonText}
+                        </button>
+                        ${scoreText ? `<span class="lesson-score">${scoreText}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function goToLesson(lessonId) {
+            window.location.href = `/lesson.html?id=${lessonId}`;
+        }
+
+        loadModule();
+    </script>
+</body>
+
+</html>

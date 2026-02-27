@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvel Investissement - CapInvest</title>
+    <link rel="stylesheet" href="/static/css/main.css?v=8">
+    <style>
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Smart Suggestions Styles */
+        .coherence-indicator {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid;
+        }
+
+        .coherence-excellent {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .coherence-good {
+            background: rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .coherence-needs_reflection {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .suggestion-box {
+            margin-top: 0.75rem;
+            padding: 1rem;
+            border-radius: 6px;
+            background: rgba(37, 99, 235, 0.05);
+            border-left: 4px solid var(--primary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .suggestion-box strong {
+            color: var(--primary);
+        }
+
+        .suggestion-actions {
+            margin-top: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .suggestion-actions button {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/espace_perso.html" class="nav-brand">
+                <img src="/static/images/capinvest_logo.png" alt="Logo" class="nav-logo">
+                <span>CapInvest</span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 2rem;">
+                <div class="nav-links">
+                    <a href="/espace_perso.html">Tableau de Bord</a>
+                    <a href="/explorer.html">Explorer</a>
+                    <a href="/nouvel_invest.html" class="active">Nouvel Investissement</a>
+                    <a href="/suivi_invest.html">Suivi</a>
+                    <a href="/academy.html">Academy</a>
+                </div>
+                <!-- User Profile Dropdown -->
+                <div class="user-menu" onclick="toggleUserMenu(event)">
+                    <div class="user-menu-trigger">
+                        <span id="user-menu-name">Mon Profil</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="user-menu-dropdown" id="user-dropdown">
+                        <a href="/mon_profil.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Mon Profil
+                        </a>
+                        <a href="/gestion_donnees.html" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Gestion de mes Données
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="api.logout(); return false;" class="dropdown-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16 17 21 12 16 7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
+                            </svg>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="questionnaire-step" class="step active">
+            <header style="margin-bottom: 2rem;">
+                <h1>Questionnaire pour mieux vous connaître</h1>
+                <p class="text-muted">Définissons ensemble votre profil.</p>
+            </header>
+
+            <!-- Coherence Indicator -->
+            <div id="coherence-indicator" class="coherence-indicator" style="display: none;">
+                <strong id="coherence-message">Profil très cohérent</strong>
+            </div>
+
+            <div class="card">
+                <form id="invest-form" onsubmit="handleRecommendation(event)">
+                    <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="form-section">
+                            <h4>Comment évalueriez-vous votre connaissance des placements ?</h4>
+                            <select id="knowledge" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="novice">Novice</option>
+                                <option value="intermediate">Intermédiaire</option>
+                                <option value="expert">Expert</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Avez-vous déjà investi par le passé ?</h4>
+                            <select id="experience" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="none">Aucune</option>
+                                <option value="some">Quelques opérations</option>
+                                <option value="extensive">Expérience régulière</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Objectif d'investissement</h4>
+                            <select id="goal" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="retirement">Retraite</option>
+                                <option value="wealth_growth">Croissance du capital</option>
+                                <option value="project">Projet (Immobilier, etc.)</option>
+                                <option value="safety">Sécurité / Préservation</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Horizon de placement</h4>
+                            <select id="horizon" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="short">Court terme (< 3 ans)</option>
+                                <option value="medium">Moyen terme (3-8 ans)</option>
+                                <option value="long">Long terme (> 8 ans)</option>
+                            </select>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Capacité de perte</h4>
+                            <select id="loss_capacity" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="none">Aucune</option>
+                                <option value="small">Faible (< 10%)</option>
+                                <option value="medium">Moyenne (10-25%)</option>
+                                <option value="high">Élevée (> 25%)</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Tolérance au risque</h4>
+                            <select id="risk_tolerance" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="low">Faible</option>
+                                <option value="medium">Modérée</option>
+                                <option value="high">Élevée</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Montant initial</h4>
+                            <select id="investment_amount" required>
+                                <option value="" selected disabled hidden>Sélectionner...</option>
+                                <option value="under_100">Moins de 100 €</option>
+                                <option value="100_to_500">Entre 100 € et 500 €</option>
+                                <option value="500_to_1000">Entre 500 € et 1 000 €</option>
+                                <option value="over_1000">Plus de 1 000 €</option>
+                            </select>
+                        </div>
+                        <div class="form-section">
+                            <h4>Mode d'investissement</h4>
+                            <div
+                                style="padding: 1rem; border-radius: 8px; border: 1px solid var(--border); background: rgba(var(--primary-rgb), 0.02);">
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin: 0;">
+                                    <input type="checkbox" id="investment_mode_checkbox"
+                                        style="width: 20px; height: 20px; margin: 0;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-weight: 600;">Ajouter un versement mensuel</span>
+                                        <small class="text-muted">Pour investir progressivement et lisser les variations
+                                            du marché.</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="views-section"
+                        style="display: none; margin-top: 1rem; padding: 1.5rem; border: 1px solid var(--primary); border-radius: 8px; background: #eff6ff;">
+                        <h4 style="color: var(--primary); margin-bottom: 1rem;">Vues de marché (optionnel)</h4>
+                        <div id="views-container">
+                            <!-- View rows will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-outline"
+                            style="margin-top: 1rem; width: 100%; border-style: dashed;" onclick="addViewRow()">+
+                            Ajouter une vue</button>
+                    </div>
+
+                    <div
+                        style="margin-top: 1rem; padding: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="esg" style="width: auto; margin: 0;">
+                            <span>Priorité Investissement Responsable (ESG)</span>
+                            <span class="help-icon"
+                                data-tooltip="Filtre les actifs selon des critères Environnementaux, Sociaux et de Gouvernance pour un impact positif."><svg
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg></span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="use_bl" style="width: auto; margin: 0;"
+                                onchange="toggleViewsSection()">
+                            <span>Activer l'optimisation avancée (Black-Litterman) - <small>Réservé aux
+                                    experts</small></span>
+                            <span class="help-icon"
+                                data-tooltip="Modèle avancé permettant d'intégrer vos propres vues de marché à l'équilibre classique de Markowitz."><svg
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg></span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%;">
+                            <span>Générer la recommandation</span>
+                            <span class="loading-spinner" id="loading-spinner"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="result-step" class="step">
+            <header
+                style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h1>Votre Recommandation</h1>
+                    <!-- Display profile type and score in the header area -->
+                    <div id="profile-result-header"
+                        style="margin-top: 1.25rem; display: flex; gap: 2.5rem; align-items: baseline;"></div>
+
+                    <button class="btn btn-outline" id="why-profile-btn"
+                        style="margin-top: 1rem; padding: 0.3rem 0.6rem; font-size: 0.85rem;"
+                        onclick="document.getElementById('modal-why-profile').style.display='block'">
+                        Pourquoi ce profil ?
+                    </button>
+                </div>
+                <div style="display:flex; gap:0.75rem; align-items:center;">
+                    <button class="btn btn-outline" id="pdf-btn" onclick="exportPDF()" style="gap:0.4rem;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                        Exporter PDF
+                    </button>
+                    <button class="btn btn-outline" onclick="location.reload()">Nouvelle analyse</button>
+                </div>
+            </header>
+
+            <div class="grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div>
+                    <div class="card">
+                        <h3>Composition du Portefeuille</h3>
+                        <div id="position-list" class="position-grid"></div>
+                    </div>
+
+                    <!-- Portfolio Explanation Section -->
+                    <div class="card" style="margin-top: 2rem; display: none;" id="explanation-card">
+                        <h3>Comprendre votre portefeuille</h3>
+                        <p id="portfolio-explanation" style="line-height: 1.6; margin-top: 1rem;"></p>
+
+                        <div id="views-impact-section"
+                            style="margin-top: 1.5rem; display: none; padding: 1rem; background: rgba(var(--primary-rgb), 0.05); border-left: 4px solid var(--primary); border-radius: 4px;">
+                            <strong>Impact de vos prévisions de marché</strong>
+                            <p id="views-impact-text"
+                                style="font-size: 0.85rem; margin-top: 0.5rem; font-style: italic;">
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Decision Buttons -->
+                    <div class="card" style="margin-top: 2rem; display: none;" id="decision-card">
+                        <h3>Que souhaitez-vous faire ?</h3>
+                        <p class="text-muted" style="font-size: 0.9rem; margin: 1rem 0;">
+                            Vous pouvez valider ce portefeuille ou revenir au questionnaire.
+                        </p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                            <button class="btn btn-primary" onclick="acceptPortfolio()" id="accept-btn">
+                                Garder ce portefeuille
+                            </button>
+                            <button class="btn btn-outline" onclick="rejectPortfolio()" id="reject-btn"
+                                style="color: var(--danger); border-color: var(--danger);">
+                                Annuler
+                            </button>
+                        </div>
+
+                        <p class="text-muted" style="font-size: 0.8rem; margin-top: 1rem; text-align: center;">
+                            💡 Aucune décision n'est définitive. Vous pouvez toujours consulter vos choix dans
+                            l'historique.
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <h3>Indicateurs Clés</h3>
+                        <div style="margin-top: 1rem;">
+                            <p class="text-muted">
+                                Rendement annuel attendu
+                                <span class="help-icon"
+                                    data-tooltip="Le rendement annuel attendu correspond à la moyenne arithmétique des rendements espérés des actifs, calculée sur la base des données historiques du marché.">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </span>
+                            </p>
+                            <p style="font-size: 1.5rem; font-weight: 700;" id="perf-return">-</p>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <p class="text-muted">
+                                Volatilité (Risque)
+                                <span class="help-icon"
+                                    data-tooltip="La volatilité est une mesure statistique de la dispersion des rendements d'un titre ou d'un indice. Elle représente l'incertitude ou le risque lié aux variations de valeur.">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </span>
+                            </p>
+                            <p style="font-size: 1.5rem; font-weight: 700;" id="perf-vol">-</p>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <p class="text-muted">
+                                Ratio de Sharpe
+                                <span class="help-icon"
+                                    data-tooltip="Le ratio de Sharpe mesure l'excès de rendement par unité de risque. Il permet d'évaluer la qualité de la performance par rapport à la volatilité subie.">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </span>
+                            </p>
+                            <p style="font-size: 1.5rem; font-weight: 700;" id="perf-sharpe">-</p>
+                        </div>
+                        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                            <button class="info-link"
+                                onclick="document.getElementById('modal-indicators').style.display='block'">🔍
+                                Comprendre ces indicateurs</button>
+                        </div>
+                    </div>
+
+                    <div class="card" id="profile-recap-card" style="display: none;">
+                        <h3>Votre Profil</h3>
+                        <div id="profile-recap-list"
+                            style="font-size: 0.9rem; margin-top: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        </div>
+                    </div>
+
+                    <div class="card" id="coherence-card" style="display: none; border: 1px solid var(--warning);">
+                        <h3 style="color: var(--warning);">Alerte Cohérence</h3>
+                        <p id="coherence-msg" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script src="/static/js/jspdf.umd.min.js"></script>
+
+    <!-- PDF report templates removed (using direct jsPDF instead) -->
+
+    <script>
+        var currentPortfolioData = null;
+
+        function exportPDF() {
+            if (!currentPortfolioData) {
+                alert('Veuillez d\'abord générer une recommandation avant d\'exporter le PDF.');
+                return;
+            }
+            var res = currentPortfolioData;
+
+            var jsPDFLib = (window.jspdf && window.jspdf.jsPDF)
+                || window.jsPDF
+                || (typeof jsPDF !== 'undefined' ? jsPDF : null);
+            if (!jsPDFLib) { alert('jsPDF non disponible. Rechargez la page.'); return; }
+
+            var doc = new jsPDFLib({ unit: 'mm', format: 'a4' });
+            var W = 210, margin = 15;
+            var dateStr = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+            // ── DARK BACKGROUND ──
+            doc.setFillColor(26, 23, 20);
+            doc.rect(0, 0, W, 297, 'F');
+
+            // ── HEADER ──
+            doc.setFillColor(53, 115, 135);
+            doc.rect(0, 0, W, 40, 'F');
+            doc.setFillColor(74, 144, 164); // teal accent strip
+            doc.rect(0, 38, W, 3, 'F');
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(22); doc.setTextColor(255, 255, 255);
+            doc.text('CapInvest', margin, 18);
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(180, 220, 232);
+            doc.text('Rapport de Recommandation \u2014 ' + dateStr, margin, 29);
+
+            // ── PROFILE ──
+            var y = 55;
+            var profileText = `Profil ${res.profile.risk_profile} - Score Risque: ${res.profile.risk_score}`;
+
+            doc.setTextColor(237, 232, 222); doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+            doc.text(profileText.substring(0, 70), margin, y);
+
+            var methodText = `Méthode : ${res.portfolio.optimization_method}`;
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(139, 125, 112);
+            doc.text(methodText.substring(0, 60), W - margin, y, { align: 'right' });
+
+            // divider
+            y = 61; doc.setDrawColor(50, 46, 42); doc.setLineWidth(0.4); doc.line(margin, y, W - margin, y);
+
+
+            // ── INDICATORS ──
+            y = 66; doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(235, 230, 220);
+            doc.text('Performance Attendue', margin, y);
+            y = 71;
+            var bW = (W - 2 * margin - 8) / 3;
+            var metrics = [
+                { label: 'RENDEMENT', val: document.getElementById('perf-return').textContent.trim(), r: 107, g: 175, b: 110 },
+                { label: 'VOLATILIT\u00c9', val: document.getElementById('perf-vol').textContent.trim(), r: 232, g: 133, b: 74 },
+                { label: 'SHARPE', val: document.getElementById('perf-sharpe').textContent.trim(), r: 107, g: 173, b: 196 }
+            ];
+            metrics.forEach(function (m, i) {
+                var bx = margin + i * (bW + 4);
+                doc.setFillColor(44, 40, 37); doc.roundedRect(bx, y, bW, 22, 2, 2, 'F');
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(139, 125, 112);
+                doc.text(m.label, bx + bW / 2, y + 8, { align: 'center' });
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(m.r, m.g, m.b);
+                doc.text(m.val, bx + bW / 2, y + 18, { align: 'center' });
+            });
+
+            // ── POSITIONS ──
+            y = 104; doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(235, 230, 220);
+            doc.text('Composition du Portefeuille', margin, y);
+            y = 109;
+            var cards = document.querySelectorAll('#position-list .asset-card');
+            cards.forEach(function (card) {
+                if (y > 270) return;
+                // Correct selectors: ticker is 2nd div (index 1), name is 3rd div (index 2), weight uses .asset-weight
+                var divs = card.querySelectorAll('div');
+                // 1st div = badge container, 2nd = ticker text, 3rd = name text
+                var ticker = card.querySelector('[style*="font-weight: 700"]') ? card.querySelector('[style*="font-weight: 700"]').textContent.trim() : '';
+                var nameEl = card.querySelector('[style*="text-muted"], [style*="color: var(--text-muted)"]');
+                var name = nameEl ? nameEl.textContent.trim() : (divs[2] ? divs[2].textContent.trim() : '');
+                var weight = card.querySelector('.asset-weight') ? card.querySelector('.asset-weight').textContent.trim() : '';
+                var badge = card.querySelector('.badge');
+                var type = badge ? badge.textContent.trim() : '';
+
+                doc.setFillColor(44, 40, 37); doc.roundedRect(margin, y, W - 2 * margin, 11, 1, 1, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(107, 173, 196);
+                doc.text(ticker.substring(0, 8), margin + 3, y + 7.5);
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(196, 186, 176);
+                var nm = name.length > 42 ? name.substring(0, 42) + '\u2026' : name;
+                doc.text(nm, margin + 22, y + 7.5);
+                doc.setFontSize(7); doc.setTextColor(74, 144, 164);
+                doc.text(type.substring(0, 8), W - margin - 28, y + 7.5);
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(107, 175, 110);
+                doc.text(weight, W - margin - 3, y + 7.5, { align: 'right' });
+                y += 13;
+            });
+
+            // ── AI ANALYSIS ──
+            var explainEl = document.getElementById('portfolio-explanation');
+            if (explainEl && explainEl.textContent.trim()) {
+                y += 5;
+                if (y > 260) { doc.addPage(); y = 20; }
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(235, 230, 220);
+                doc.text('Analyse de l\'IA', margin, y);
+                y += 6;
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(196, 186, 176);
+                var splitText = doc.splitTextToSize(explainEl.textContent.trim(), W - 2 * margin);
+                doc.text(splitText, margin, y);
+            }
+
+            // ── DISCLAIMER ──
+            doc.setFont('helvetica', 'italic'); doc.setFontSize(7); doc.setTextColor(91, 82, 74);
+            doc.text('Ce rapport est g\u00e9n\u00e9r\u00e9 automatiquement par CapInvest. Les performances pass\u00e9es ne pr\u00e9jugent pas des performances futures.',
+                margin, 289, { maxWidth: W - 2 * margin });
+
+            // Universal save: Blob URL works on all browsers including Safari
+            var blob = doc.output('blob');
+            var blobUrl = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = blobUrl;
+            a.target = '_blank';
+            a.download = 'CapInvest_Recommandation.pdf';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function () { URL.revokeObjectURL(blobUrl); }, 2000);
+
+        }
+    </script>
+
+
+    <!-- Modal: Pourquoi ce profil ? -->
+    <div id="modal-why-profile" class="modal pedagogy-modal" onclick="if(event.target===this)this.style.display='none'">
+        <div class="modal-content">
+            <span class="close-modal"
+                onclick="document.getElementById('modal-why-profile').style.display='none'">×</span>
+            <h2 style="margin-bottom: 1.5rem;">Comment votre profil est déterminé</h2>
+
+            <div class="modal-section">
+                <h4>Trois critères fondamentaux</h4>
+                <p>Votre profil (Prudent, Équilibré ou Dynamique) est construit à partir de trois éléments clés :
+                    <strong>votre horizon de placement</strong>, <strong>votre tolérance personnelle au risque</strong>,
+                    et <strong>votre score de risque</strong>. Ces trois dimensions sont combinées pour
+                    obtenir une vision complète de votre situation.
+                </p>
+            </div>
+
+            <div class="modal-section">
+                <h4>Le score de risque, une mesure précise</h4>
+                <p>Le score de risque est une valeur numérique comprise entre 0 et 100 qui synthétise votre profil
+                    d'investisseur.
+                    Il prend en compte vos connaissances, vos objectifs et votre capacité financière. Plus ce score est
+                    élevé,
+                    plus votre portefeuille sera orienté vers des actifs dynamiques pour chercher du rendement.
+                    À l'inverse, un score bas indique que la priorité est donnée à la préservation de votre capital.</p>
+            </div>
+
+            <div class="modal-section">
+                <h4>Une vérification de cohérence</h4>
+                <p>Conformément à la réglementation MiFID II, une analyse de cohérence est appliquée. Si vos réponses
+                    présentent des contradictions (par exemple, une forte appétence au risque combinée à aucune capacité
+                    de perte), cela est signalé et pris en compte dans la recommandation finale.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Comprendre les indicateurs -->
+    <div id="modal-indicators" class="modal pedagogy-modal" onclick="if(event.target===this)this.style.display='none'">
+        <div class="modal-content">
+            <span class="close-modal"
+                onclick="document.getElementById('modal-indicators').style.display='none'">×</span>
+            <h2 style="margin-bottom: 1.5rem;">Comprendre les indicateurs clés</h2>
+
+            <div class="modal-section">
+                <h4>Rendement attendu</h4>
+                <p>C'est l'estimation du gain annuel moyen de votre portefeuille, exprimée en pourcentage. Elle est
+                    calculée à partir des performances historiques des actifs sélectionnés. Plus ce chiffre est élevé,
+                    plus le potentiel de gain est important — mais cela s'accompagne généralement d'un niveau de risque
+                    plus élevé.</p>
+            </div>
+
+            <div class="modal-section">
+                <h4>Volatilité</h4>
+                <p>La volatilité mesure à quel point la valeur de votre portefeuille peut varier dans le temps. Une
+                    volatilité faible signifie un portefeuille stable, avec peu de fluctuations. Une volatilité élevée
+                    indique des variations plus importantes — à la hausse comme à la baisse. Elle reflète le niveau de
+                    risque réel de votre investissement.</p>
+            </div>
+
+            <div class="modal-section">
+                <h4>Ratio de Sharpe</h4>
+                <p>Ce chiffre évalue l'efficacité de votre portefeuille : combien de rendement obtenez-vous pour chaque
+                    unité de risque prise ? Plus le ratio est élevé, plus votre portefeuille est performant par rapport
+                    au risque qu'il comporte. Un ratio supérieur à 1 est généralement considéré comme satisfaisant.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js?v=2"></script>
+    <script>
+        let availableTickers = [];
+
+        async function initTickers() {
+            try {
+                const response = await api.fetchWithAuth('/api/recommandation/tickers');
+                if (response.ok) availableTickers = await response.json();
+            } catch (err) { console.error("Could not load tickers", err); }
+        }
+        initTickers();
+
+        function toggleViewsSection() {
+            const isExpert = document.getElementById('knowledge').value === 'expert';
+            const blCheckbox = document.getElementById('use_bl');
+
+            // If not expert, force uncheck and disable the checkbox
+            if (!isExpert) {
+                blCheckbox.checked = false;
+                blCheckbox.disabled = true;
+                if (blCheckbox.parentElement) {
+                    blCheckbox.parentElement.style.opacity = '0.5';
+                    blCheckbox.parentElement.style.cursor = 'not-allowed';
+                }
+            } else {
+                blCheckbox.disabled = false;
+                if (blCheckbox.parentElement) {
+                    blCheckbox.parentElement.style.opacity = '1';
+                    blCheckbox.parentElement.style.cursor = 'pointer';
+                }
+            }
+
+            const blChecked = blCheckbox.checked;
+            const section = document.getElementById('views-section');
+
+            // Toggle section visibility
+            section.style.display = (isExpert && blChecked) ? 'block' : 'none';
+
+            // If section is being hidden, clear views to avoid accidental submission
+            if (section.style.display === 'none') {
+                const container = document.getElementById('views-container');
+                if (container) container.innerHTML = '';
+            }
+        }
+
+        // Add visibility check on expertise change too
+        document.getElementById('knowledge').addEventListener('change', toggleViewsSection);
+
+        function addViewRow() {
+            const container = document.getElementById('views-container');
+            const row = document.createElement('div');
+            row.className = 'view-row';
+            row.style = "display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 0.5rem; margin-bottom: 0.5rem; align-items: end;";
+
+            let tickerOptions = availableTickers.map(t => `<option value="${t.ticker}">${t.ticker} - ${t.name}</option>`).join('');
+
+            row.innerHTML = `
+                <div>
+                    <label style="font-size: 0.75rem;">Actif</label>
+                    <select class="v-ticker">${tickerOptions}</select>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem;">Direction</label>
+                    <select class="v-direction">
+                        <option value="bullish">Haussier</option>
+                        <option value="neutral">Neutre</option>
+                        <option value="bearish">Baissier</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem;">Confiance</label>
+                    <select class="v-confidence">
+                        <option value="low">Faible</option>
+                        <option value="medium">Moyenne</option>
+                        <option value="high">Forte</option>
+                    </select>
+                </div>
+                <button type="button" class="btn btn-outline" style="padding: 0.5rem; color: var(--danger); border-color: var(--danger);" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(row);
+        }
+
+        let currentPortfolioId = null;
+        let lastFormData = null; // Cache form data for regeneration
+
+        async function handleRecommendation(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const spinner = document.getElementById('loading-spinner');
+
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+
+            try {
+                const views = [];
+                document.querySelectorAll('.view-row').forEach(row => {
+                    views.push({
+                        ticker: row.querySelector('.v-ticker').value,
+                        direction: row.querySelector('.v-direction').value,
+                        confidence: row.querySelector('.v-confidence').value
+                    });
+                });
+
+                const payload = {
+                    investment_goal: document.getElementById('goal').value,
+                    horizon: document.getElementById('horizon').value,
+                    risk_tolerance: document.getElementById('risk_tolerance').value,
+                    loss_capacity: document.getElementById('loss_capacity').value,
+                    knowledge_level: document.getElementById('knowledge').value,
+                    experience: document.getElementById('experience').value,
+                    investment_amount: document.getElementById('investment_amount').value,
+                    investment_mode: document.getElementById('investment_mode_checkbox').checked ? 'both' : 'one_time',
+                    esg_preference: document.getElementById('esg').checked,
+                    liquidity_need: document.getElementById('liquidity') ? document.getElementById('liquidity').checked : false,
+                    use_black_litterman: document.getElementById('use_bl').checked,
+                    market_views: views.length > 0 ? views : null
+                };
+
+                // Cache form data for regeneration
+                lastFormData = payload;
+
+                const res = await api.post('/api/recommandation', payload);
+                displayResult(res);
+            } catch (err) {
+                alert('Erreur: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+
+        function displayResult(res) {
+            currentPortfolioData = res;
+            currentPortfolioId = res.portfolio_id; // Save for decision actions
+
+            document.getElementById('questionnaire-step').classList.remove('active');
+            document.getElementById('result-step').classList.add('active');
+
+            // Profile recap with French translations
+            // Profile recap with French translations
+            if (res.profile.raw_responses) {
+                const recap = document.getElementById('profile-recap-card');
+                const list = document.getElementById('profile-recap-list');
+                recap.style.display = 'block';
+                const r = res.profile.raw_responses;
+
+                const labels = {
+                    'investment_goal': 'Objectif',
+                    'horizon': 'Horizon',
+                    'risk_tolerance': 'Tolérance Risque',
+                    'investment_amount': 'Montant Initial',
+                    'investment_mode': 'Mode d\'Invest.'
+                };
+
+                const translations = {
+                    'retirement': 'Retraite',
+                    'wealth_growth': 'Croissance du capital',
+                    'project': 'Projet',
+                    'safety': 'Sécurité / Préservation',
+                    'short': 'Court terme ( < 3 ans)',
+                    'medium': 'Moyen terme (3-8 ans)',
+                    'long': 'Long terme (> 8 ans)',
+                    'low': 'Faible',
+                    'medium': 'Modérée',
+                    'high': 'Élevée',
+                    'under_100': 'Moins de 100 \u20ac',
+                    '100_to_500': '100-500 \u20ac',
+                    '500_to_1000': '500-1000 \u20ac',
+                    'over_1000': 'Plus de 1000 \u20ac',
+                    'one_time': 'Versement unique',
+                    'recurring': 'Versement mensuel',
+                    'both': 'Les deux'
+                };
+
+                // 1. Update Header with determined results
+                const headerDisplay = document.getElementById('profile-result-header');
+                const profileName = translations[res.profile.risk_profile.toLowerCase()] || res.profile.risk_profile;
+                const displayScore = Math.round(res.profile.risk_score * 100);
+                headerDisplay.innerHTML = `
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Profil déterminé</span>
+                        <span style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">${profileName}</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span class="text-muted" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;">Score de risque</span>
+                        <span style="font-size: 1.6rem; font-weight: 800; color: var(--text-main);">${displayScore}<small style="font-size: 0.9rem; font-weight: 400; color: var(--text-muted); margin-left: 2px;">/100</small></span>
+                    </div>
+                `;
+
+                // 2. Update Sidebar recap (user responses only)
+                list.innerHTML = Object.entries(labels).map(([key, label]) => {
+                    const value = r[key];
+                    const translated = translations[value] || value?.replace(/_/g, ' ') || '-';
+                    return `
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--bg-secondary); padding-bottom: 0.3rem;">
+                            <span class="text-muted">${label}</span>
+                            <span style="font-weight: 600; color: var(--text-main);">${translated}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (res.portfolio.processed_views && Object.keys(res.portfolio.processed_views).length > 0) {
+                const section = document.getElementById('views-impact-section');
+                const text = document.getElementById('views-impact-text');
+                section.style.display = 'block';
+
+                const impacts = Object.entries(res.portfolio.processed_views).map(([ticker, shift]) => {
+                    const direction = shift > 0 ? "augmentée" : "réduite";
+                    return `L'exposition à <strong>${ticker}</strong> a été ${direction} selon vos vues de marché.`;
+                }).join('<br>');
+
+                text.innerHTML = impacts;
+            }
+
+            // Coherence
+            const flags = Object.values(res.profile.coherence_flags);
+            if (flags.length > 0) {
+                const card = document.getElementById('coherence-card');
+                card.style.display = 'block';
+                document.getElementById('coherence-msg').textContent = flags.join(' ');
+            }
+
+            // Performance with contextual tooltips
+            const returnPct = (res.portfolio.expected_return * 100).toFixed(2);
+            const volPct = (res.portfolio.volatility * 100).toFixed(2);
+            const sharpe = res.portfolio.sharpe_ratio.toFixed(2);
+
+            document.getElementById('perf-return').textContent = returnPct + '%';
+            document.getElementById('perf-vol').textContent = volPct + '%';
+            document.getElementById('perf-sharpe').textContent = sharpe;
+
+            // Positions with explanations
+
+            // Positions with explanations
+            const list = document.getElementById('position-list');
+            list.innerHTML = '';
+            res.portfolio.positions.sort((a, b) => b.weight - a.weight).forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'asset-card';
+
+                let explanationHtml = '';
+                if (p.explanation) {
+                    explanationHtml = `
+                        <details style="margin-top: 0.75rem; font-size: 0.85rem; background: var(--bg-secondary); padding: 0.5rem; border-radius: 4px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--primary);">Pourquoi cet actif ?</summary>
+                            <div style="margin-top: 0.5rem; line-height: 1.5;">
+                                <p style="margin: 0.5rem 0;"><strong>Identification :</strong> ${p.explanation.identification}</p>
+                                <p style="margin: 0.5rem 0;"><strong>Fiabilité :</strong> ${p.explanation.reliability}</p>
+                                <p style="margin: 0.5rem 0;"><strong>Rôle :</strong> ${p.explanation.role}</p>
+                            </div>
+                        </details>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                        <span class="badge badge-${p.asset_type.toLowerCase()}">${p.asset_type}</span>
+                        ${p.asset_class === 'ESG' ? '<span class="badge badge-esg">ESG <span class="help-icon" data-tooltip="Cet actif respecte des critères Environnementaux, Sociaux et de Gouvernance."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span></span>' : ''}
+                    </div>
+                    <div style="font-weight: 700; font-size: 1.1rem;">${p.ticker}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted); height: 2.5rem; overflow: hidden;">${p.name}</div>
+                    <div class="asset-weight" style="margin-top: 1rem;">${(p.weight * 100).toFixed(2)}%</div>
+                    ${explanationHtml}
+                `;
+                list.appendChild(card);
+            });
+
+            // Portfolio explanation
+            if (res.portfolio.portfolio_explanation) {
+                document.getElementById('explanation-card').style.display = 'block';
+                document.getElementById('portfolio-explanation').innerHTML = res.portfolio.portfolio_explanation;
+            }
+
+            // Show decision buttons
+            document.getElementById('decision-card').style.display = 'block';
+        }
+
+        async function acceptPortfolio() {
+            if (!currentPortfolioId) {
+                alert('Aucun portefeuille à accepter');
+                return;
+            }
+
+            try {
+                const response = await api.post(`/api/portfolios/${currentPortfolioId}/accept`);
+                alert('Portefeuille enregistré avec succès !');
+                window.location.href = '/suivi_invest.html';
+            } catch (err) {
+                alert('Erreur lors de l\'acceptation : ' + err.message);
+            }
+        }
+
+        async function regeneratePortfolio() {
+            if (!lastFormData) {
+                alert('Erreur: Impossible de régénérer (données manquantes)');
+                return;
+            }
+
+            const btn = document.getElementById('regenerate-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Génération...';
+
+            try {
+                // Re-submit the SAME questionnaire to get a new portfolio
+                const res = await api.post('/api/recommandation', lastFormData);
+                displayResult(res);
+                // Note: No alert here to avoid interrupting the user flow
+            } catch (err) {
+                alert('Erreur lors de la régénération : ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Autre proposition';
+            }
+        }
+
+        async function rejectPortfolio() {
+            if (!currentPortfolioId) {
+                window.location.href = '/espace_perso.html';
+                return;
+            }
+
+            try {
+                await api.post(`/api/portfolios/${currentPortfolioId}/reject`);
+                alert('Proposition annulée.');
+                window.location.href = '/espace_perso.html';
+            } catch (err) {
+                alert('Erreur lors de l\'annulation : ' + err.message);
+                window.location.href = '/espace_perso.html';
+            }
+        }
+    </script>
+
+    <!-- Smart Suggestions Script -->
+    <script src="/static/js/smart-suggestions.js"></script>
+    <script>
+        // Field state tracking for SMART LOCK mechanism
+        const fieldStates = {
+            knowledge_level: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            experience: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            investment_goal: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            horizon: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            investment_amount: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            loss_capacity: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            risk_tolerance: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            },
+            investment_mode: {
+                lockedFromUpstream: false,
+                lastManualChangeValue: null,
+                warningShownForValue: null
+            }
+        };
+
+        // Initialize checkbox value tracking
+        document.addEventListener('DOMContentLoaded', () => {
+            const modeCheckbox = document.getElementById('investment_mode_checkbox');
+            if (modeCheckbox) {
+                modeCheckbox.addEventListener('change', (e) => {
+                    const val = e.target.checked ? 'both' : 'one_time';
+                    fieldStates.investment_mode.lockedFromUpstream = true;
+                    fieldStates.investment_mode.lastManualChangeValue = val;
+                    updateSuggestions('investment_mode');
+                });
+            }
+        });
+
+        // Flag to track programmatic changes (applySuggestion)
+        let isApplyingSuggestion = false;
+
+        // Initialize smart suggestions on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await smartSuggestions.init();
+            console.log('Smart suggestions initialized');
+
+            // Monitor form changes
+            const form = document.getElementById('invest-form');
+            const formFields = form.querySelectorAll('select, input');
+
+
+            formFields.forEach(field => {
+                field.addEventListener('change', (e) => {
+                    const fieldId = getFieldId(e.target.id);
+                    const currentValue = e.target.value;
+
+                    if (fieldId && fieldStates[fieldId]) {
+                        if (!isApplyingSuggestion) {
+                            // This is a MANUAL change
+                            fieldStates[fieldId].lockedFromUpstream = true;
+                            fieldStates[fieldId].lastManualChangeValue = currentValue;
+
+                            // Allow one warning for this new manual value
+                            if (fieldStates[fieldId].warningShownForValue !== currentValue) {
+                                fieldStates[fieldId].warningShownForValue = null;
+                            }
+
+                            console.log(`Manual change detected: ${fieldId} = ${currentValue}`);
+                            console.log(`Field ${fieldId} locked from upstream`);
+                        }
+                    }
+
+                    // Pass the edited field to updateSuggestions
+                    updateSuggestions(fieldId);
+                });
+            });
+
+            // Initial update
+            updateSuggestions();
+        });
+
+
+        // Helper to normalize field IDs
+        function getFieldId(domId) {
+            const mapping = {
+                'knowledge': 'knowledge_level',
+                'goal': 'investment_goal'
+            };
+            return mapping[domId] || domId;
+        }
+
+        // Helper to get DOM ID from field ID (inverse of getFieldId)
+        function getDOMId(fieldId) {
+            const reverseMapping = {
+                'knowledge_level': 'knowledge',
+                'investment_goal': 'goal',
+                'investment_mode': 'investment_mode_checkbox'
+            };
+            return reverseMapping[fieldId] || fieldId;
+        }
+
+        function updateSuggestions(currentEditedField = null) {
+            // Collect current responses
+            const responses = {
+                investment_goal: document.getElementById('goal').value,
+                horizon: document.getElementById('horizon').value,
+                risk_tolerance: document.getElementById('risk_tolerance').value,
+                loss_capacity: document.getElementById('loss_capacity').value,
+                knowledge_level: document.getElementById('knowledge').value,
+                experience: document.getElementById('experience').value,
+                investment_amount: document.getElementById('investment_amount').value,
+                investment_mode: document.getElementById('investment_mode_checkbox').checked ? 'both' : 'one_time'
+            };
+
+            // Update smart suggestions engine
+            smartSuggestions.updateResponses(responses);
+
+            // Update coherence indicator
+            const coherence = smartSuggestions.calculateCoherence();
+            const indicator = document.getElementById('coherence-indicator');
+            const message = document.getElementById('coherence-message');
+
+            if (coherence.totalCount > 0) {
+                indicator.style.display = 'block';
+                indicator.className = `coherence-indicator coherence-${coherence.status}`;
+
+                // Add icon based on status
+                let icon = '';
+                if (coherence.status === 'excellent') icon = '';
+                else if (coherence.status === 'good') icon = '';
+                else icon = '';
+
+                message.innerHTML = `${icon} ${coherence.message}`;
+            } else {
+                indicator.style.display = 'none';
+            }
+
+            // Display field suggestions with smart lock logic
+            displayFieldSuggestions(currentEditedField);
+        }
+
+
+        // Helper to compute max allowed risk based on MiFID II priority
+        function computeMaxAllowedRisk() {
+            const lossCapacity = document.getElementById('loss_capacity').value;
+            const horizon = document.getElementById('horizon').value;
+            const knowledge = document.getElementById('knowledge').value;
+
+            // MiFID II Priority 1: Loss Capacity (HARD CAP)
+            if (lossCapacity === 'none') {
+                return 'low';
+            } else if (lossCapacity === 'small' || lossCapacity === 'medium') {
+                // 'small' = limited, 'medium' = moderate capacity
+                if (horizon === 'long' && knowledge === 'expert') {
+                    return 'high'; // Exception case
+                }
+                return 'medium';
+            } else if (lossCapacity === 'high') {
+                // 'high' = significant capacity
+                return 'high';
+            }
+
+            return 'medium'; // Default
+        }
+
+        function displayFieldSuggestions(currentEditedField = null) {
+            const suggestions = smartSuggestions.evaluateSuggestions();
+
+            // Clear all previous suggestions
+            document.querySelectorAll('.suggestion-container').forEach(container => {
+                container.innerHTML = '';
+            });
+
+            // Group suggestions by field
+            const suggestionsByField = {};
+            suggestions.forEach(s => {
+                if (!suggestionsByField[s.field]) {
+                    suggestionsByField[s.field] = [];
+                }
+                suggestionsByField[s.field].push(s);
+            });
+
+            // Display suggestions for each field
+            for (const [field, fieldSuggestions] of Object.entries(suggestionsByField)) {
+                const state = fieldStates[field];
+                if (!state) continue;
+
+                // risk_tolerance and horizon are pedagogically critical: never suppress their suggestions with smart lock
+                var isUpstreamChange = (currentEditedField && currentEditedField !== field);
+                if (field !== 'risk_tolerance' && field !== 'horizon') {
+
+                    if (isUpstreamChange && state.lockedFromUpstream) {
+                        console.log('\u26d4 Blocking upstream suggestion for locked field: ' + field);
+                        continue;
+                    }
+
+                    if (currentEditedField === field) {
+                        var currentValue = document.getElementById(getDOMId(field)).value;
+                        if (state.warningShownForValue === currentValue) {
+                            console.log('\u2713 Warning already shown for ' + field + '=' + currentValue);
+                            continue;
+                        }
+                        console.log('\u26a0\ufe0f  Allowing warning for manual change: ' + field + '=' + currentValue);
+                    }
+                }
+
+
+                // Find the FIRST suggestion that is NOT followed
+                const suggestion = fieldSuggestions.find(s => !s.isFollowed);
+
+                // Only show if there's an unfollowed suggestion
+                if (suggestion) {
+                    // Find the container
+                    let containerId;
+                    if (field === 'investment_goal') containerId = 'goal';
+                    else if (field === 'investment_amount') containerId = 'investment_amount';
+                    else if (field === 'investment_mode') containerId = 'investment_mode';
+                    else containerId = field;
+
+                    const containerElement = document.getElementById(`suggestion-${containerId}`);
+                    if (!containerElement) {
+                        // Create container if it doesn't exist
+                        const fieldElement = document.getElementById(containerId);
+                        if (fieldElement && fieldElement.parentElement) {
+                            const newContainer = document.createElement('div');
+                            newContainer.id = `suggestion-${containerId}`;
+                            newContainer.className = 'suggestion-container';
+                            fieldElement.parentElement.appendChild(newContainer);
+                        }
+                    }
+
+                    const container = document.getElementById(`suggestion-${containerId}`);
+                    if (container) {
+                        // Format suggested values in French
+                        const valueLabels = {
+                            'low': 'Faible',
+                            'medium': 'Modéré(e)',
+                            'high': 'Élevé(e)',
+                            'short': 'Court terme',
+                            'long': 'Long terme',
+                            'retirement': 'Retraite',
+                            'wealth_growth': 'Croissance du capital',
+                            'project': 'Projet',
+                            'safety': 'Sécurité'
+                        };
+
+                        // For risk_tolerance, filter suggestions to respect MiFID cap
+                        let validSuggestedValues = suggestion.suggestedValues;
+                        if (field === 'risk_tolerance') {
+                            const maxAllowed = computeMaxAllowedRisk();
+                            const riskLevels = { low: 1, medium: 2, high: 3 };
+                            validSuggestedValues = suggestion.suggestedValues.filter(
+                                function (v) { return (riskLevels[v] || 0) <= (riskLevels[maxAllowed] || 2); }
+                            );
+                            if (validSuggestedValues.length === 0) {
+                                container.innerHTML = '';
+                                continue;
+                            }
+                        }
+
+                        const suggestedText = validSuggestedValues
+                            .map(v => valueLabels[v] || v)
+                            .join(' ou ');
+
+                        container.innerHTML = `
+                            <div class="suggestion-box">
+                                <strong>💡 Suggestion : ${suggestedText}</strong>
+                                <p style="margin: 0.5rem 0; line-height: 1.5;">${suggestion.explanation}</p>
+                                <div class="suggestion-actions">
+                                    <button type="button" class="btn-secondary" onclick="applySuggestion('${containerId}', '${validSuggestedValues[0]}')">
+                                        Appliquer
+                                    </button>
+                                    <button type="button" class="btn-secondary" onclick="ignoreSuggestion('${containerId}')" style="background: var(--text-muted);">
+                                        Ignorer
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+
+                        // Mark warning as shown for manually changed field
+                        if (currentEditedField === field) {
+                            const currentValue = document.getElementById(getDOMId(field)).value;
+                            fieldStates[field].warningShownForValue = currentValue;
+                            console.log(`✓ Warning marked as shown for ${field}=${currentValue}`);
+                        }
+                    }
+                }
+            }
+        }
+
+        function applySuggestion(fieldId, value) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                // Set flag to distinguish from manual changes
+                isApplyingSuggestion = true;
+
+                if (field.type === 'checkbox') {
+                    // Map logical values to checkbox state
+                    field.checked = (value === 'both' || value === 'recurring');
+                } else {
+                    field.value = value;
+                }
+
+                // CRITICAL: Smart lock after applying suggestion
+                const normalizedFieldId = getFieldId(fieldId);
+                if (normalizedFieldId && fieldStates[normalizedFieldId]) {
+                    fieldStates[normalizedFieldId].lockedFromUpstream = true;
+                    fieldStates[normalizedFieldId].warningShownForValue = value;
+                    console.log(`Field ${normalizedFieldId} locked from upstream after applying suggestion`);
+                }
+
+                isApplyingSuggestion = false;
+                field.dispatchEvent(new Event('change'));
+            }
+        }
+
+        function ignoreSuggestion(fieldId) {
+            const container = document.getElementById(`suggestion-${fieldId}`);
+            if (container) {
+                container.innerHTML = '';
+            }
+        }
+
+        // User dropdown menu functions
+        function toggleUserMenu(event) {
+            event.stopPropagation();
+            const menu = event.currentTarget.closest('.user-menu');
+            menu.classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function (e) {
+            if (!e.target.closest('.user-menu')) {
+                document.querySelectorAll('.user-menu.active').forEach(menu => {
+                    menu.classList.remove('active');
+                });
+            }
+        });
+
+        // Load user name
+        async function loadUserName() {
+            try {
+                const user = await api.getMe();
+                const nameElement = document.getElementById('user-menu-name');
+                if (user.full_name && nameElement) {
+                    nameElement.textContent = user.full_name;
+                }
+            } catch (err) {
+                console.error('Error loading user name:', err);
+            }
+        }
+
+        loadUserName();
+    </script>
+
+</body>
+
+</html>
