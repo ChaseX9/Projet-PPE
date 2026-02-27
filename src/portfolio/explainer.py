@@ -83,8 +83,16 @@ def explain_portfolio(profile: Dict, positions: List[Dict], category_allocations
     horizon = profile.get('horizon', 'medium')
     goal = profile.get('goal', 'wealth_growth')
     num_positions = len(positions)
-    equity_pct = round(category_allocations.get('equities', 0.6) * 100)
-    bond_pct = round(category_allocations.get('bonds', 0.4) * 100)
+
+    # --- Use actual portfolio weights, not the theoretical target ---
+    real_bond_weight = sum(
+        p.get("weight", 0)
+        for p in positions
+        if p.get("category") == "bonds" or "Bond" in str(p.get("asset_class", "")) or p.get("sector") == "Obligations"
+    )
+    real_equity_weight = 1.0 - real_bond_weight
+    equity_pct = round(real_equity_weight * 100)
+    bond_pct = round(real_bond_weight * 100)
     
     # Horizon-based intro (MOST IMPORTANT FOR COHERENCE)
     if horizon == 'short':
@@ -118,8 +126,13 @@ def explain_portfolio(profile: Dict, positions: List[Dict], category_allocations
     # Compose coherent intro
     intro = f"Votre portefeuille est conçu pour {goal_text} sur {horizon_text}, en cherchant à {risk_text}. "
     
-    # Allocation strategy
-    strategy = f"Il est composé de {equity_pct}% d'actifs de croissance et {bond_pct}% d'obligations, {time_adapted}."
+    # Allocation strategy - adapt text based on actual composition
+    if bond_pct == 0:
+        strategy = f"Il est composé à 100% d'actifs de croissance (actions et ETFs), {time_adapted}."
+    elif equity_pct == 0:
+        strategy = f"Il est composé à 100% d'actifs sécurisés (obligations), {time_adapted}."
+    else:
+        strategy = f"Il est composé de {equity_pct}% d'actifs de croissance et {bond_pct}% d'obligations, {time_adapted}."
     
     # Diversification
     diversification = f" Il contient {num_positions} positions soigneusement sélectionnées pour répartir les risques entre différents secteurs et zones géographiques."
