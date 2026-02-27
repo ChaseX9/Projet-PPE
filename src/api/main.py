@@ -38,11 +38,20 @@ app.include_router(gdpr_router)
 
 @app.on_event("startup")
 async def startup_event():
-    from ..database.database import init_db
+    from ..database.database import init_db, SessionLocal
+    from ..database.seeding import auto_seed_if_empty
     from ..data.data_loader import load_or_update_universe
+    
     try:
         init_db()
         print("✓ Database initialized")
+        
+        db = SessionLocal()
+        try:
+            auto_seed_if_empty(db)
+        finally:
+            db.close()
+            
         load_or_update_universe(max_age_days=7)
         print("✓ Universe ready")
     except Exception as e:
