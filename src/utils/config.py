@@ -130,3 +130,37 @@ API_DESCRIPTION = "MiFID II compliant investment recommendation service"
 API_VERSION = "0.1.0"
 
 # Portfolio constraints (UPDATED for Phase 5)
+
+# ========== WHITELIST : Actifs de Référence ==========
+# Ces actifs sont universellement reconnus et reçoivent un bonus sur le reliability_score.
+REFERENCE_ASSETS = {
+    # ETFs World - Incontournables
+    "VT", "ACWI", "VWCE.DE", "CW8.PA", "IWDA.AS", "URTH",
+    # ETFs US - Piliers
+    "SPY", "VOO", "VTI", "QQQ", "IWM",
+    # ETFs Européens PEA - Reconnus
+    "ANX.PA", "PSP5.PA", "PUST.PA", "PCW8.PA",
+    # ETFs Obligations - Solides
+    "AGG", "BND", "TLT", "LQD", "BNDX",
+    # Actions US - Blue Chips mondiales
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "JPM", "JNJ", "V", "WMT", "PG",
+    "UNH", "XOM", "CVX", "KO", "PEP", "HD", "MA", "BAC",
+    # Actions EU - Champions nationaux très connus
+    "MC.PA", "OR.PA", "TTE.PA", "AIR.PA", "BNP.PA", "SAN.PA", "ASML",
+    "NESN.SW", "NOVN.SW", "AZN",
+    # ETFs ESG - Référence
+    "ESGV", "ESGU",
+}
+
+# Bonus de fiabilité accordé aux actifs de la whitelist (ajouté au reliability_score)
+REFERENCE_ASSET_BONUS = 20
+
+# ========== DIVERSIFICATION SECTORIELLE ==========
+# Nombre max d'actifs par secteur dans la sélection finale
+MAX_ASSETS_PER_SECTOR = {
+    "Prudent": 1,
+    "Équilibré": 2,
+    "Dynamique": 2,
+}
+# Nombre minimum de secteurs différents dans le portefeuille final (hors obligations)
+MIN_SECTORS_IN_PORTFOLIO = 3

@@ -5,7 +5,7 @@ import pandas as pd
 from ..profile.schemas import RefinedProfile, ExpertiseLevel, RiskProfile
 from ..data.data_loader import load_or_update_universe
 from .allocation import get_target_allocation
-from .filters import filter_universe, select_top_assets
+from .filters import filter_universe, select_top_assets, enforce_portfolio_diversification
 from .optimizer import optimize_markowitz, optimize_black_litterman, get_historical_prices, get_portfolio_performance
 from ..utils.config import (
     MIN_ASSETS, 
@@ -52,8 +52,8 @@ def build_portfolio(profile: RefinedProfile, force_update_universe: bool = False
         if cat_weight <= 0:
             continue
             
-        # Select best assets for this category
-        cat_assets = select_top_assets(eligible_assets, category)
+        # Select best assets for this category (with sector diversification)
+        cat_assets = select_top_assets(eligible_assets, category, profile=profile)
         tickers = cat_assets['ticker'].tolist()
         
         if not tickers:
@@ -102,10 +102,11 @@ def build_portfolio(profile: RefinedProfile, force_update_universe: bool = False
     # 7. Format output
     positions = []
     for t, w in final_weights.items():
-        # Dust filtering is now handled in simplify_portfolio, 
+        # Dust filtering is now handled in simplify_portfolio,
         # but we keep a safety check here.
-        if w < 0.0001: continue 
-        
+        if w < 0.0001:
+            continue
+
         info = universe[universe['ticker'] == t].iloc[0]
         positions.append({
             "ticker": t,
@@ -115,8 +116,14 @@ def build_portfolio(profile: RefinedProfile, force_update_universe: bool = False
             "asset_class": info['asset_class'],
             "category": info['category'],
             "geography": info['geography'],
-            "volatility": round(float(info['volatility']), 4)
+            "sector": info.get('sector', 'Autre'),
+            "volatility": round(float(info['volatility']), 4),
+            "reliability_score": round(float(info.get('reliability_score', 50.0)), 1),
+            "sharpe_ratio": round(float(info.get('sharpe_ratio', 0.0)), 3),
         })
+
+    # Post-optimization diversification check
+    positions = enforce_portfolio_diversification(positions, eligible_assets, profile)
         
     # Final method determination
     # If all segments used BL with views, or at least one did, we customize the label

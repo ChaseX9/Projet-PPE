@@ -46,7 +46,10 @@ class PortfolioPosition(BaseModel):
     asset_class: str
     category: str
     geography: str
+    sector: Optional[str] = None
     volatility: float
+    reliability_score: Optional[float] = None
+    sharpe_ratio: Optional[float] = None
     explanation: Optional[Dict[str, str]] = None  # identification, reliability, role
 
 class ProfileSummary(BaseModel):
