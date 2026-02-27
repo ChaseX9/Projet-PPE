@@ -509,16 +509,22 @@ def load_or_update_universe(max_age_days: int = 7) -> pd.DataFrame:
     if age is not None and age < max_age_days:
         print(f"Universe is {age} days old, loading from file...")
         df = load_universe_from_csv(UNIVERSE_FILE)
-        # Backwards compat: add missing columns with defaults
-        if "sector" not in df.columns:
-            df["sector"] = df["ticker"].map(lambda t: MANUAL_SECTOR_MAP.get(t, "Autre"))
-        if "reliability_score" not in df.columns:
-            df["reliability_score"] = 50.0  # neutral default
-            # Apply reference bonus even for cached data
-            df.loc[df["ticker"].isin(REFERENCE_ASSETS), "reliability_score"] = 70.0
-        if "sharpe_ratio" not in df.columns:
-            df["sharpe_ratio"] = 0.5
-        return df
+        
+        # Guard: load_universe_from_csv returns None if file is missing
+        if df is None or df.empty:
+            print("⚠️ Universe file missing or empty — forcing fresh fetch.")
+            age = None  # fall through to the fetch block below
+        else:
+            # Backwards compat: add missing columns with defaults
+            if "sector" not in df.columns:
+                df["sector"] = df["ticker"].map(lambda t: MANUAL_SECTOR_MAP.get(t, "Autre"))
+            if "reliability_score" not in df.columns:
+                df["reliability_score"] = 50.0  # neutral default
+                # Apply reference bonus even for cached data
+                df.loc[df["ticker"].isin(REFERENCE_ASSETS), "reliability_score"] = 70.0
+            if "sharpe_ratio" not in df.columns:
+                df["sharpe_ratio"] = 0.5
+            return df
         
     print("Universe missing or outdated. Fetching fresh data from Yahoo Finance...")
     
