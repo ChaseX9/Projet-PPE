@@ -26,3 +26,4 @@ scs==3.2.11
 ecos==2.0.14
 watchfiles==1.1.1
 websockets==16.0
+bcrypt==4.2.1
