@@ -246,6 +246,19 @@ body {
     min-height: 100vh;
 }
 
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover,
+a:active,
+a:focus {
+    color: var(--primary-light);
+    text-decoration: underline;
+}
+
 /* ── Typography ────────────────────────────────────────────── */
 h1 {
     font-size: 1.65rem;
