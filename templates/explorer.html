@@ -525,7 +525,7 @@
                         ${asset.has_sparkline ? variationContent : ''}
                     </div>
                     <div class="card-sparkline" style="position: relative; margin-top: 0.5rem;">
-                        <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60" data-color="${sparklineColor}" data-gtop="${gradientTop}" data-gbottom="${gradientBottom}"></canvas>
+                        <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60" data-color="${sparklineColor}" data-gtop="${gradientTop}" data-gbottom="${gradientBottom}" data-name="${asset.name}"></canvas>
                         <div style="position: absolute; bottom: -5px; right: 0; font-size: 0.65rem; color: var(--text-muted); opacity: 0.7;">3 ans</div>
                     </div>
                     <p class="text-muted" style="font-size: 0.85rem; line-height: 1.4; flex-grow: 1;">
@@ -570,6 +570,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
+                        label: canvas.dataset.name,
                         data: data,
                         borderColor: strokeColor,
                         backgroundColor: (context) => {
@@ -592,12 +593,16 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            intersect: false,
                             mode: 'index',
+                            intersect: false,
                             displayColors: false,
                             callbacks: {
+                                title: function (context) {
+                                    return context[0].label;
+                                },
                                 label: function (context) {
-                                    return context.parsed.y + ' €/$';
+                                    const value = context.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                    return context.dataset.label + ' : ' + value + ' €/$';
                                 }
                             }
                         }
@@ -757,7 +762,8 @@
                                 intersect: false,
                                 callbacks: {
                                     label: function (context) {
-                                        return context.parsed.y + ' €/$';
+                                        const value = context.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                        return context.dataset.label + ' : ' + value + ' €/$';
                                     }
                                 }
                             }
