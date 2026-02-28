@@ -246,6 +246,11 @@
                 liquidité,
                 leur diversification et leur pertinence pédagogique.
             </p>
+
+            <div id="static-assets-summary" style="margin-top: 1rem; font-weight: 500; font-size: 0.95rem;">
+                <!-- Filled by JS on load -->
+            </div>
+
             <div
                 style="margin-top: 1.5rem; display: flex; align-items: center; gap: 0.6rem; color: var(--accent); font-size: 0.85rem; font-weight: 500;">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -324,6 +329,10 @@
             </div>
         </div>
 
+        <div id="dynamic-assets-summary"
+            style="margin-bottom: 1.5rem; display: flex; justify-content: flex-end; align-items: center; gap: 0.5rem; font-weight: 500; font-size: 0.95rem; color: var(--text-muted);">
+        </div>
+
         <div id="assets-list" class="assets-grid">
             <!-- Assets will be injected here -->
             <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
@@ -392,6 +401,31 @@
 
         function renderAssets(assets) {
             const list = document.getElementById('assets-list');
+
+            // 1. Mettre à jour le compteur global (statique en haut) si pas encore fait
+            const staticSummaryDiv = document.getElementById('static-assets-summary');
+            if (staticSummaryDiv && !staticSummaryDiv.dataset.initialized && allAssets.length > 0) {
+                const totalEtf = allAssets.filter(a => a.asset_type === 'ETF').length;
+                const totalStock = allAssets.filter(a => a.asset_type === 'STOCK').length;
+                staticSummaryDiv.innerHTML = `L'algorithme analyse actuellement <span class="badge badge-etf">${totalEtf} ETFs</span> et <span class="badge badge-stock">${totalStock} Actions</span>.`;
+                staticSummaryDiv.dataset.initialized = 'true';
+            }
+
+            // 2. Mettre à jour le compteur dynamique (en dessous des filtres)
+            const dynamicSummaryDiv = document.getElementById('dynamic-assets-summary');
+            if (dynamicSummaryDiv) {
+                if (assets.length === allAssets.length) {
+                    // Si on affiche tout, on vide le compteur dynamique pour ne pas faire doublon
+                    dynamicSummaryDiv.innerHTML = '';
+                } else if (assets.length > 0) {
+                    const filteredEtfCount = assets.filter(a => a.asset_type === 'ETF').length;
+                    const filteredStockCount = assets.filter(a => a.asset_type === 'STOCK').length;
+                    dynamicSummaryDiv.innerHTML = `<span style="margin-right: 0.5rem;">Résultats filtrés :</span> <span class="badge badge-etf">${filteredEtfCount} ETFS</span> <span class="badge badge-stock">${filteredStockCount} ACTIONS</span>`;
+                } else {
+                    dynamicSummaryDiv.innerHTML = '';
+                }
+            }
+
             if (assets.length === 0) {
                 list.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
@@ -411,8 +445,9 @@
                     <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
                         ${asset.ticker} • ${asset.geography}
                     </div>
-                    <div class="card-sparkline">
+                    <div class="card-sparkline" style="position: relative;">
                         <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60"></canvas>
+                        <div style="position: absolute; bottom: -5px; right: 0; font-size: 0.65rem; color: var(--text-muted); opacity: 0.7;">3 ans</div>
                     </div>
                     <p class="text-muted" style="font-size: 0.85rem; line-height: 1.4; flex-grow: 1;">
                         ${asset.pedagogy_short}
