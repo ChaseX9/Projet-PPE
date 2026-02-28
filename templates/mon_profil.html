@@ -6,6 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Profil - CapInvest</title>
     <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        /* Premium Download Button */
+        .premium-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark, #3A7A8D));
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 164, 0.3);
+            text-decoration: none;
+        }
+
+        .premium-download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 164, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .premium-download-btn .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.4rem;
+            border-radius: var(--radius-sm);
+            transition: transform 0.3s ease;
+        }
+
+        .premium-download-btn:hover .btn-icon {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 
 <body>
@@ -144,14 +183,15 @@
                 Conformément à votre droit à la portabilité (RGPD Article 20), vous pouvez télécharger l'intégralité de
                 vos données dans un format machine-readable (JSON).
             </p>
-            <button class="module-button" onclick="exportData()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    style="margin-right: 0.5rem;">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                📊 Télécharger mes données (JSON)
+            <button class="premium-download-btn" onclick="exportData()">
+                <div class="btn-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                </div>
+                <span>Télécharger mes données (JSON)</span>
             </button>
             <div id="export-status" style="margin-top: 1rem; color: var(--success);"></div>
         </div>
