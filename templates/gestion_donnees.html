@@ -39,33 +39,42 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 1rem;
-            background: var(--bg-secondary);
-            border-radius: 4px;
-            margin-bottom: 0.75rem;
+            padding: 1.25rem 1.5rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            transition: border-color 0.2s;
         }
 
-        .consent-toggle label {
+        .consent-toggle:hover {
+            border-color: var(--border-light);
+        }
+
+        .consent-text {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            flex: 1;
+            flex-direction: column;
+            gap: 0.25rem;
         }
 
-        .danger-zone {
-            border: 2px solid var(--danger);
-            background: var(--danger-bg);
+        .consent-text strong {
+            font-size: 1rem;
+            color: var(--text-main);
         }
 
-        .danger-zone h2 {
-            color: var(--danger);
+        .consent-text small {
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
 
+        /* Premium Toggle Switch */
         .toggle-switch {
             position: relative;
-            width: 40px;
-            height: 22px;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+            margin-left: 1rem;
         }
 
         .toggle-switch input {
@@ -82,20 +91,21 @@
             right: 0;
             bottom: 0;
             background-color: var(--border);
-            transition: .4s;
+            transition: .3s;
             border-radius: 24px;
         }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 16px;
-            width: 16px;
+            height: 18px;
+            width: 18px;
             left: 3px;
             bottom: 3px;
-            background-color: var(--text-main);
-            transition: .4s;
+            background-color: white;
+            transition: .3s;
             border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         input:checked+.slider {
@@ -103,15 +113,24 @@
         }
 
         input:checked+.slider:before {
-            transform: translateX(18px);
+            transform: translateX(20px);
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 0 2px rgba(74, 144, 164, 0.3);
         }
 
         .info-box {
-            background: var(--primary-bg);
+            display: flex;
+            gap: 0.75rem;
+            background: rgba(74, 144, 164, 0.1);
             border-left: 4px solid var(--primary);
-            padding: 1rem;
-            margin: 1rem 0;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
             color: var(--text-main);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
 
         .export-preview {
@@ -294,28 +313,33 @@
                     tout moment.</p>
 
                 <div class="consent-toggle">
-                    <span style="color: var(--text);">
-                        <strong>Cookies de préférences</strong><br>
-                        <small style="color: var(--text-muted);">Mémorisation de vos choix d'interface et de
-                            langue</small>
-                    </span>
-                    <input type="checkbox" id="cookies-consent" onchange="updateConsent()"
-                        style="width: auto; margin: 0; cursor: pointer; transform: scale(1.3);">
+                    <div class="consent-text">
+                        <strong>Cookies de préférences</strong>
+                        <small>Mémorisation de vos choix d'interface et de langue</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="cookies-consent" onchange="updateConsent()">
+                        <span class="slider"></span>
+                    </label>
                 </div>
 
                 <div class="consent-toggle">
-                    <span style="color: var(--text);">
-                        <strong>Communications marketing</strong><br>
-                        <small style="color: var(--text-muted);">Recevoir des conseils et actualités (newsletter
-                            future)</small>
-                    </span>
-                    <input type="checkbox" id="marketing-consent" onchange="updateConsent()"
-                        style="width: auto; margin: 0; cursor: pointer; transform: scale(1.3);">
+                    <div class="consent-text">
+                        <strong>Communications marketing</strong>
+                        <small>Recevoir des conseils et actualités (newsletter future)</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="marketing-consent" onchange="updateConsent()">
+                        <span class="slider"></span>
+                    </label>
                 </div>
 
                 <div class="info-box">
-                    <strong>ℹ️ Note :</strong> Les cookies essentiels (authentification) ne peuvent pas être désactivés
-                    car ils sont nécessaires au fonctionnement du service.
+                    <div style="font-size: 1.2rem; flex-shrink: 0;">ℹ️</div>
+                    <div>
+                        <strong>Note :</strong> Les cookies essentiels (authentification) ne peuvent pas être désactivés
+                        car ils sont nécessaires au fonctionnement du service.
+                    </div>
                 </div>
 
                 <div id="consent-status" style="margin-top: 1rem; color: var(--success);"></div>
