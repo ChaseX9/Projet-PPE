@@ -157,6 +157,70 @@
             gap: 1rem;
             margin-top: 1.5rem;
         }
+
+        /* Premium Buttons */
+        .premium-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark, #3A7A8D));
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 164, 0.3);
+            text-decoration: none;
+        }
+
+        .premium-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 164, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .premium-btn-danger {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .premium-btn-danger:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .premium-btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            box-shadow: none;
+        }
+
+        .premium-btn-secondary:hover {
+            background: var(--border);
+            box-shadow: none;
+            filter: none;
+        }
+
+        .premium-btn .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.4rem;
+            border-radius: var(--radius-sm);
+            transition: transform 0.3s ease;
+        }
+
+        .premium-btn-secondary .btn-icon {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .premium-btn:hover .btn-icon {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 
@@ -261,8 +325,15 @@
             <div class="data-section">
                 <h2>✏️ Modifier mes Informations</h2>
                 <p>Modifiez vos informations personnelles et votre mot de passe.</p>
-                <button class="module-button" style="display: inline-block;" onclick="openEditModal()">
-                    Modifier mes informations
+                <button class="premium-btn" onclick="openEditModal()">
+                    <div class="btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </div>
+                    <span>Modifier mes informations</span>
                 </button>
             </div>
 
@@ -278,9 +349,18 @@
                     <li>Progression Academy</li>
                     <li>Toutes les données associées</li>
                 </ul>
-                <button class="module-button" style="background: #ff4d4f; border-color: #ff4d4f;"
-                    onclick="openDeleteModal()">
-                    Supprimer définitivement mon compte
+                <button class="premium-btn premium-btn-danger" onclick="openDeleteModal()">
+                    <div class="btn-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                    </div>
+                    <span>Supprimer définitivement mon compte</span>
                 </button>
             </div>
 
@@ -314,12 +394,10 @@
             <input type="password" id="delete-password" placeholder="Mot de passe"
                 style="width: 100%; padding: 0.75rem; margin: 1rem 0; border: 1px solid #d9d9d9; border-radius: 4px;">
             <div class="modal-buttons">
-                <button class="module-button" style="background: #d9d9d9; border-color: #d9d9d9; color: #333;"
-                    onclick="closeDeleteModal()">
+                <button class="premium-btn premium-btn-secondary" onclick="closeDeleteModal()">
                     Annuler
                 </button>
-                <button class="module-button" style="background: #ff4d4f; border-color: #ff4d4f;"
-                    onclick="confirmDelete()">
+                <button class="premium-btn premium-btn-danger" onclick="confirmDelete()">
                     Supprimer définitivement
                 </button>
             </div>
@@ -357,12 +435,10 @@
             </div>
 
             <div class="modal-buttons">
-                <button class="module-button" style="background: #d9d9d9; border-color: #d9d9d9; color: #333;"
-                    onclick="closeEditModal()">
+                <button class="premium-btn premium-btn-secondary" onclick="closeEditModal()">
                     Annuler
                 </button>
-                <button class="module-button" style="background: var(--primary); border-color: var(--primary);"
-                    onclick="saveProfileChanges()">
+                <button class="premium-btn" onclick="saveProfileChanges()">
                     Enregistrer
                 </button>
             </div>
