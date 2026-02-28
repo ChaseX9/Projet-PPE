@@ -435,18 +435,48 @@
                 return;
             }
 
-            list.innerHTML = assets.map(asset => `
+            list.innerHTML = assets.map(asset => {
+                // Calculer la variation sur 3 ans si on a des données sparkline
+                let variationHtml = '';
+                let variationClass = '';
+                let isPositive = true;
+
+                if (asset.has_sparkline && asset.sparkline && asset.sparkline.length > 0) {
+                    const points = asset.sparkline;
+                    const startRaw = points[0];
+                    const endRaw = points[points.length - 1];
+                    // La table est normalisée de 0 à 1, mais la première valeur n'est pas forcément 0.
+                    // Si la dernière valeur est au dessus de la première, c'est positif.
+                    isPositive = endRaw >= startRaw;
+
+                    // On simule un % de variation (la sparkline est 0-1, ce calcul est approximatif pour le visuel
+                    // L'idéal serait d'avoir la vraie perf renvoyée par l'API, mais on utilise ce qu'on a)
+                    // Si on n'a que des points 0-1 on fait au mieux :
+                    const diff = endRaw - startRaw;
+                    const sign = isPositive ? '+' : '';
+                    variationClass = isPositive ? 'var(--success)' : 'var(--danger)';
+                    // On évite d'afficher un % faux vu que les données sont normalisées [0, 1].
+                    // On indique uniquement si c'est en hausse ou en baisse visuellement via la couleur.
+                    // Une refonte du backend serait nécessaire pour afficher "+15%".
+                }
+
+                const sparklineColor = isPositive ? '#10B981' : '#EF4444'; // Vert ou Rouge
+                const gradientTop = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)';
+                const gradientBottom = isPositive ? 'rgba(16, 185, 129, 0)' : 'rgba(239, 68, 68, 0)';
+
+                return `
                 <div class="card asset-card" onclick="openModal('${asset.ticker}')">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
                         <span class="badge ${asset.asset_type === 'ETF' ? 'badge-etf' : 'badge-stock'}">${asset.asset_type}</span>
                         ${asset.is_esg ? '<span class="badge badge-esg">ESG</span>' : ''}
                     </div>
                     <h3 style="margin-bottom: 0.25rem; color: var(--text-main);">${asset.name}</h3>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
-                        ${asset.ticker} • ${asset.geography}
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; justify-content: space-between;">
+                        <span>${asset.ticker} • ${asset.geography}</span>
+                        ${asset.has_sparkline ? `<span style="color: ${variationClass}; font-weight: 600; font-size: 0.75rem;">${isPositive ? '➚ Hausse' : '↘ Baisse'} (3A)</span>` : ''}
                     </div>
-                    <div class="card-sparkline" style="position: relative;">
-                        <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60"></canvas>
+                    <div class="card-sparkline" style="position: relative; margin-top: 0.5rem;">
+                        <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60" data-color="${sparklineColor}" data-gtop="${gradientTop}" data-gbottom="${gradientBottom}"></canvas>
                         <div style="position: absolute; bottom: -5px; right: 0; font-size: 0.65rem; color: var(--text-muted); opacity: 0.7;">3 ans</div>
                     </div>
                     <p class="text-muted" style="font-size: 0.85rem; line-height: 1.4; flex-grow: 1;">
@@ -457,7 +487,7 @@
                         <span class="text-muted" style="font-size: 0.75rem;">Détails →</span>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
 
             assets.forEach(asset => {
                 if (asset.has_sparkline) {
@@ -480,13 +510,18 @@
             const height = canvas.height;
             const padding = 5;
 
+            // Récupérer les couleurs définies dans le dataset HTML
+            const strokeColor = canvas.dataset.color || '#4A90A4';
+            const gradientTop = canvas.dataset.gtop || 'rgba(74, 144, 164, 0.4)';
+            const gradientBottom = canvas.dataset.gbottom || 'rgba(74, 144, 164, 0)';
+
             ctx.clearRect(0, 0, width, height);
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, 'rgba(74, 144, 164, 0.4)');
-            gradient.addColorStop(1, 'rgba(74, 144, 164, 0)');
+            gradient.addColorStop(0, gradientTop);
+            gradient.addColorStop(1, gradientBottom);
 
             ctx.beginPath();
-            ctx.strokeStyle = '#4A90A4';
+            ctx.strokeStyle = strokeColor;
             ctx.lineWidth = 2;
             ctx.lineJoin = 'round';
             ctx.lineCap = 'round';
