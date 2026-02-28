@@ -117,5 +117,5 @@ class ExplorerAsset(BaseModel):
     key_takeaways: List[str]
     
     # Visuals
-    sparkline: List[float]
+    sparkline: List[dict]
     has_sparkline: bool

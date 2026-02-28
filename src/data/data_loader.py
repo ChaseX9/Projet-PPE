@@ -339,13 +339,13 @@ def calculate_volatility(ticker: str, period: str = YAHOO_FINANCE_PERIOD) -> Opt
         return None
 
 
-def get_sparkline(ticker: str, period: str = "3y", points: int = 20) -> List[float]:
-    """Get a simplified list of price points for sparkline charts (Normalized 0-1)."""
+def get_sparkline(ticker: str, period: str = "3y", points: int = 20) -> List[dict]:
+    """Get a simplified list of price points and dates for sparkline charts."""
     return get_sparklines_batch([ticker], period, points).get(ticker, [])
 
 
-def get_sparklines_batch(tickers: List[str], period: str = "3y", points: int = 20) -> Dict[str, List[float]]:
-    """Fetch and normalize sparklines for multiple tickers in one batch."""
+def get_sparklines_batch(tickers: List[str], period: str = "3y", points: int = 20) -> Dict[str, List[dict]]:
+    """Fetch and format sparklines for multiple tickers in one batch."""
     if not tickers:
         return {}
         
@@ -374,23 +374,25 @@ def get_sparklines_batch(tickers: List[str], period: str = "3y", points: int = 2
                     else:
                         continue
                     
-                    vals = np.array(prices).flatten()
-                    vals = vals[~np.isnan(vals)]
+                    clean_prices = prices.dropna()
                     
-                    if len(vals) < 2:
+                    if len(clean_prices) < 2:
                         results[ticker] = []
                         continue
                         
-                    indices = np.linspace(0, len(vals) - 1, points, dtype=int)
-                    sampled = vals[indices]
+                    indices = np.linspace(0, len(clean_prices) - 1, points, dtype=int)
+                    sampled_prices = clean_prices.iloc[indices].values
+                    # The index is a DatetimeIndex
+                    sampled_dates = clean_prices.index[indices].strftime('%Y-%m-%d').tolist()
                     
-                    min_p = np.min(sampled)
-                    max_p = np.max(sampled)
-                    if max_p == min_p:
-                        results[ticker] = [0.5] * points
-                    else:
-                        normalized = (sampled - min_p) / (max_p - min_p)
-                        results[ticker] = [round(float(p), 4) for p in normalized]
+                    sparkline_data = []
+                    for k in range(len(sampled_prices)):
+                        sparkline_data.append({
+                            "date": sampled_dates[k],
+                            "price": round(float(sampled_prices[k]), 4)
+                        })
+                        
+                    results[ticker] = sparkline_data
                 except Exception as inner_e:
                     print(f"Error processing sparkline for {ticker}: {inner_e}")
                     results[ticker] = []

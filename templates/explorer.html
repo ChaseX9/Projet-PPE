@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bibliothèque d'investissement - CapInvest</title>
     <link rel="stylesheet" href="/static/css/main.css?v=8">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .explorer-banner {
             background: linear-gradient(135deg, var(--card-bg) 0%, var(--bg-secondary) 100%);
@@ -355,6 +356,8 @@
     <script src="/static/js/api.js"></script>
     <script>
         let allAssets = [];
+        window.sparklineCharts = window.sparklineCharts || {};
+        let modalChart = null;
 
         async function checkAuth() {
             try {
@@ -400,6 +403,12 @@
         }
 
         function renderAssets(assets) {
+            // Détruire les anciens graphiques pour éviter les fuites de mémoire
+            if (window.sparklineCharts) {
+                Object.values(window.sparklineCharts).forEach(chart => chart.destroy());
+            }
+            window.sparklineCharts = {};
+
             const list = document.getElementById('assets-list');
 
             // 1. Mettre à jour le compteur global (statique en haut) si pas encore fait
@@ -436,28 +445,23 @@
             }
 
             list.innerHTML = assets.map(asset => {
-                // Calculer la variation sur 3 ans si on a des données sparkline
-                let variationHtml = '';
+                // Calculer la variation sur 3 ans avec les données de la sparkline
+                let variationContent = '';
                 let variationClass = '';
                 let isPositive = true;
 
                 if (asset.has_sparkline && asset.sparkline && asset.sparkline.length > 0) {
                     const points = asset.sparkline;
-                    const startRaw = points[0];
-                    const endRaw = points[points.length - 1];
-                    // La table est normalisée de 0 à 1, mais la première valeur n'est pas forcément 0.
-                    // Si la dernière valeur est au dessus de la première, c'est positif.
+                    const startRaw = points[0].price;
+                    const endRaw = points[points.length - 1].price;
                     isPositive = endRaw >= startRaw;
 
-                    // On simule un % de variation (la sparkline est 0-1, ce calcul est approximatif pour le visuel
-                    // L'idéal serait d'avoir la vraie perf renvoyée par l'API, mais on utilise ce qu'on a)
-                    // Si on n'a que des points 0-1 on fait au mieux :
                     const diff = endRaw - startRaw;
+                    const perf = (startRaw !== 0) ? (diff / startRaw) * 100 : 0;
+
                     const sign = isPositive ? '+' : '';
                     variationClass = isPositive ? 'var(--success)' : 'var(--danger)';
-                    // On évite d'afficher un % faux vu que les données sont normalisées [0, 1].
-                    // On indique uniquement si c'est en hausse ou en baisse visuellement via la couleur.
-                    // Une refonte du backend serait nécessaire pour afficher "+15%".
+                    variationContent = `<span style="color: ${variationClass}; font-weight: 700; font-size: 0.8rem; margin-left: 0.5rem;">${sign}${perf.toFixed(2)}% (3A)</span>`;
                 }
 
                 const sparklineColor = isPositive ? '#10B981' : '#EF4444'; // Vert ou Rouge
@@ -471,9 +475,9 @@
                         ${asset.is_esg ? '<span class="badge badge-esg">ESG</span>' : ''}
                     </div>
                     <h3 style="margin-bottom: 0.25rem; color: var(--text-main);">${asset.name}</h3>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; justify-content: space-between;">
+                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
                         <span>${asset.ticker} • ${asset.geography}</span>
-                        ${asset.has_sparkline ? `<span style="color: ${variationClass}; font-weight: 600; font-size: 0.75rem;">${isPositive ? '➚ Hausse' : '↘ Baisse'} (3A)</span>` : ''}
+                        ${asset.has_sparkline ? variationContent : ''}
                     </div>
                     <div class="card-sparkline" style="position: relative; margin-top: 0.5rem;">
                         <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60" data-color="${sparklineColor}" data-gtop="${gradientTop}" data-gbottom="${gradientBottom}"></canvas>
@@ -505,40 +509,65 @@
         function drawSparkline(canvasId, points) {
             const canvas = document.getElementById(canvasId);
             if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-            const padding = 5;
+
+            const labels = points.map(p => p.date);
+            const data = points.map(p => p.price);
 
             // Récupérer les couleurs définies dans le dataset HTML
             const strokeColor = canvas.dataset.color || '#4A90A4';
             const gradientTop = canvas.dataset.gtop || 'rgba(74, 144, 164, 0.4)';
             const gradientBottom = canvas.dataset.gbottom || 'rgba(74, 144, 164, 0)';
 
-            ctx.clearRect(0, 0, width, height);
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, gradientTop);
-            gradient.addColorStop(1, gradientBottom);
+            const ctx = canvas.getContext('2d');
 
-            ctx.beginPath();
-            ctx.strokeStyle = strokeColor;
-            ctx.lineWidth = 2;
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-
-            const step = width / (points.length - 1);
-            points.forEach((p, i) => {
-                const x = i * step;
-                const y = height - (p * (height - padding * 2) + padding);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+            window.sparklineCharts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        borderColor: strokeColor,
+                        backgroundColor: (context) => {
+                            const chartCtx = context.chart.ctx;
+                            const gradient = chartCtx.createLinearGradient(0, 0, 0, 60);
+                            gradient.addColorStop(0, gradientTop);
+                            gradient.addColorStop(1, gradientBottom);
+                            return gradient;
+                        },
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            intersect: false,
+                            mode: 'index',
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) {
+                                    return context.parsed.y + ' €/$';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false, min: Math.min(...data) * 0.95 }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
             });
-            ctx.stroke();
-
-            ctx.lineTo(width, height);
-            ctx.lineTo(0, height);
-            ctx.fillStyle = gradient;
-            ctx.fill();
         }
 
         function applyFilters() {
@@ -580,18 +609,35 @@
                 </div>
             `).join('');
 
+            let variationHeader = '';
+            if (asset.has_sparkline && asset.sparkline && asset.sparkline.length > 0) {
+                const points = asset.sparkline;
+                const startRaw = points[0].price;
+                const endRaw = points[points.length - 1].price;
+                const isPositive = endRaw >= startRaw;
+                const diff = endRaw - startRaw;
+                const perf = (startRaw !== 0) ? (diff / startRaw) * 100 : 0;
+                const color = isPositive ? 'var(--success)' : 'var(--danger)';
+                const sign = isPositive ? '+' : '';
+                variationHeader = `<div style="font-size: 1.2rem; font-weight: 700; color: ${color};">${sign}${perf.toFixed(2)}% (3 ans)</div>`;
+            }
+
             body.innerHTML = `
                 <div style="display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 2rem;">
                     <div style="flex-grow: 1;">
                         <span class="badge ${asset.asset_type === 'ETF' ? 'badge-etf' : 'badge-stock'}" style="margin-bottom: 0.5rem;">${asset.asset_type}</span>
-                        <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem;">${asset.name}</h2>
+                        <h2 style="font-size: 1.8rem; margin-bottom: 0.25rem;">${asset.name}</h2>
                         <div class="text-muted" style="font-weight: 500;">${asset.ticker} • ${asset.geography}</div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.25rem;">Niveau de risque</div>
-                        <div style="font-size: 1.1rem; font-weight: 700; color: ${getVolColor(asset.volatility_level)};">${asset.volatility_level}</div>
+                        <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.25rem;">Rendement & Risque</div>
+                        ${variationHeader}
+                        <div style="font-size: 0.9rem; font-weight: 600; color: ${getVolColor(asset.volatility_level)}; margin-top: 0.25rem;">Risque : ${asset.volatility_level}</div>
                     </div>
                 </div>
+
+                ${asset.has_sparkline ? '<div style="margin-bottom: 2.5rem; height: 200px; width: 100%; position: relative;"><canvas id="modal-chart"></canvas></div>' : ''}
+
                 <div class="grid" style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2.5rem;">
                     <div>
                         <h4 style="color: var(--primary-light); text-transform: uppercase; letter-spacing: 0.05em;">Qu'est-ce que c'est ?</h4>
@@ -617,6 +663,79 @@
                 </div>
             `;
             modal.style.display = 'block';
+
+            if (asset.has_sparkline) {
+                if (modalChart) {
+                    modalChart.destroy();
+                }
+                const points = asset.sparkline;
+                const labels = points.map(p => p.date);
+                const data = points.map(p => p.price);
+                const startRaw = points[0].price;
+                const endRaw = points[points.length - 1].price;
+                const isPositive = endRaw >= startRaw;
+
+                const strokeColor = isPositive ? '#10B981' : '#EF4444';
+                const gradientTop = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)';
+                const gradientBottom = isPositive ? 'rgba(16, 185, 129, 0)' : 'rgba(239, 68, 68, 0)';
+
+                const ctx = document.getElementById('modal-chart').getContext('2d');
+                modalChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: asset.name,
+                            data: data,
+                            borderColor: strokeColor,
+                            backgroundColor: (context) => {
+                                const chartCtx = context.chart.ctx;
+                                const gradient = chartCtx.createLinearGradient(0, 0, 0, 200);
+                                gradient.addColorStop(0, gradientTop);
+                                gradient.addColorStop(1, gradientBottom);
+                                return gradient;
+                            },
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: function (context) {
+                                        return context.parsed.y + ' €/$';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: 'rgba(255,255,255,0.5)' }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.05)' },
+                                ticks: { color: 'rgba(255,255,255,0.5)' },
+                                min: Math.min(...data) * 0.95
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        }
+                    }
+                });
+            }
         }
 
         function closeModal() {
