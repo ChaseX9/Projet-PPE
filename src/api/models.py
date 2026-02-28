@@ -1,6 +1,6 @@
 """FastAPI request/response models."""
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 
 from ..profile.schemas import (
     InvestmentGoal,
@@ -29,7 +29,7 @@ class RecommendationRequest(BaseModel):
     loss_capacity: LossCapacity
     knowledge_level: KnowledgeLevel
     experience: Experience
-    investment_amount: InvestmentAmount = InvestmentAmount.FROM_100_TO_500
+    investment_amount: Union[float, InvestmentAmount] = InvestmentAmount.FROM_100_TO_500
     investment_mode: InvestmentMode = InvestmentMode.ONE_TIME
     esg_preference: bool = False
     liquidity_need: bool = False

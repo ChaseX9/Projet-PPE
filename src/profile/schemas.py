@@ -1,6 +1,6 @@
 """Pydantic schemas for user profiling (MiFID II)."""
 from enum import Enum
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 from pydantic import BaseModel, Field, validator
 
 class InvestmentGoal(Enum):
@@ -71,7 +71,7 @@ class QuestionnaireInput(BaseModel):
     market_views: Optional[List[Dict]] = None
     
     # New Phase 5 questions
-    investment_amount: InvestmentAmount = InvestmentAmount.FROM_100_TO_500
+    investment_amount: Union[float, InvestmentAmount] = InvestmentAmount.FROM_100_TO_500
     investment_mode: InvestmentMode = InvestmentMode.ONE_TIME
 
 class RawProfile(BaseModel):

@@ -153,17 +153,20 @@ def simplify_portfolio(weights: Dict[str, float], profile: RefinedProfile) -> Di
     3. Renormalize remaining weights (no artificial equal-weight).
     """
     # 1. Determine limit based on investment amount and risk profile
-    # Instead of expertise, we use the amount for non-expert friendly simplicity
+    from ..profile.ml_profile import normalize_investment_amount
     from ..profile.schemas import InvestmentAmount
+    
     amount = profile.raw_profile.raw_responses.investment_amount
+    normalized_amount = normalize_investment_amount(amount)
     
     # Small amount check (Under 500€) -> limit to fewer assets
-    if amount in [InvestmentAmount.UNDER_100, InvestmentAmount.FROM_100_TO_500]:
+    if normalized_amount in [InvestmentAmount.UNDER_100, InvestmentAmount.FROM_100_TO_500]:
         limit = 4 # Simple portfolio for small amounts
     else:
         limit = MAX_ASSETS # Default max
         
-    print(f"DEBUG: Simplifying for amount {amount.value} (Limit: {limit})")
+    amount_str = amount if isinstance(amount, (int, float, str)) else amount.value
+    print(f"DEBUG: Simplifying for amount {amount_str} (Limit: {limit})")
     
     # 2. NO fixed dust filtering (per user request)
     # We keep only significant positions but without a hard threshold that forces equal weight

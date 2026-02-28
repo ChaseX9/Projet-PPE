@@ -216,13 +216,36 @@
                         </div>
                         <div class="form-section">
                             <h4>Montant initial</h4>
-                            <select id="investment_amount" required>
-                                <option value="" selected disabled hidden>Sélectionner...</option>
-                                <option value="under_100">Moins de 100 €</option>
-                                <option value="100_to_500">Entre 100 € et 500 €</option>
-                                <option value="500_to_1000">Entre 500 € et 1 000 €</option>
-                                <option value="over_1000">Plus de 1 000 €</option>
-                            </select>
+                            <div
+                                style="display: flex; gap: 1.5rem; margin-bottom: 0.75rem; justify-content: start; border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px;">
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-main); margin: 0;">
+                                    <input type="radio" name="amount_type" value="exact" checked
+                                        onchange="toggleAmountType()"
+                                        style="width:16px; height:16px; margin:0; outline:none; box-shadow:none;">
+                                    <span style="font-size: 0.95rem;">Montant précis</span>
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-main); margin: 0;">
+                                    <input type="radio" name="amount_type" value="range" onchange="toggleAmountType()"
+                                        style="width:16px; height:16px; margin:0; outline:none; box-shadow:none;">
+                                    <span style="font-size: 0.95rem;">Fourchette</span>
+                                </label>
+                            </div>
+                            <div id="amount-exact-container">
+                                <input type="number" id="investment_amount_exact" min="10" placeholder="Ex: 1500"
+                                    required onchange="syncAmount()" onkeyup="syncAmount()">
+                            </div>
+                            <div id="amount-range-container" style="display: none;">
+                                <select id="investment_amount_range" onchange="syncAmount()">
+                                    <option value="" selected disabled hidden>Sélectionner...</option>
+                                    <option value="under_100">Moins de 100 €</option>
+                                    <option value="100_to_500">Entre 100 € et 500 €</option>
+                                    <option value="500_to_1000">Entre 500 € et 1 000 €</option>
+                                    <option value="over_1000">Plus de 1 000 €</option>
+                                </select>
+                            </div>
+                            <input type="hidden" id="investment_amount" value="">
                         </div>
                         <div class="form-section">
                             <h4>Mode d'investissement</h4>
@@ -645,6 +668,31 @@
     <script>
         let availableTickers = [];
 
+        function toggleAmountType() {
+            const isExact = document.querySelector('input[name="amount_type"]:checked').value === 'exact';
+
+            document.getElementById('amount-exact-container').style.display = isExact ? 'block' : 'none';
+            document.getElementById('amount-range-container').style.display = !isExact ? 'block' : 'none';
+
+            document.getElementById('investment_amount_exact').required = isExact;
+            document.getElementById('investment_amount_range').required = !isExact;
+
+            syncAmount();
+        }
+
+        function syncAmount() {
+            const isExact = document.querySelector('input[name="amount_type"]:checked').value === 'exact';
+            const value = isExact
+                ? document.getElementById('investment_amount_exact').value
+                : document.getElementById('investment_amount_range').value;
+
+            const hiddenInput = document.getElementById('investment_amount');
+            if (hiddenInput.value !== value) {
+                hiddenInput.value = value;
+                hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
         async function initTickers() {
             try {
                 const response = await api.fetchWithAuth('/api/recommandation/tickers');
@@ -834,7 +882,14 @@
                 // 2. Update Sidebar recap (user responses only)
                 list.innerHTML = Object.entries(labels).map(([key, label]) => {
                     const value = r[key];
-                    const translated = translations[value] || value?.replace(/_/g, ' ') || '-';
+                    let translated = translations[value];
+                    if (!translated) {
+                        if (!isNaN(value) && value !== null && value !== '') {
+                            translated = parseFloat(value).toLocaleString('fr-FR') + ' €';
+                        } else {
+                            translated = value?.replace(/_/g, ' ') || '-';
+                        }
+                    }
                     return `
                         <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--bg-secondary); padding-bottom: 0.3rem;">
                             <span class="text-muted">${label}</span>

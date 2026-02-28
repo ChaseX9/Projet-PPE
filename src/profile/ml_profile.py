@@ -16,6 +16,24 @@ def simulate_ml_classification(risk_score: float, horizon_score: float) -> RiskP
     else:
         return RiskProfile.DYNAMIQUE
 
+def normalize_investment_amount(amount) -> 'InvestmentAmount':
+    """Helper to map an exact float amount to the corresponding Enum."""
+    from .schemas import InvestmentAmount
+    if isinstance(amount, InvestmentAmount):
+        return amount
+    try:
+        val = float(amount)
+        if val < 100:
+            return InvestmentAmount.UNDER_100
+        elif val <= 500:
+            return InvestmentAmount.FROM_100_TO_500
+        elif val <= 1000:
+            return InvestmentAmount.FROM_500_TO_1000
+        else:
+            return InvestmentAmount.OVER_1000
+    except (ValueError, TypeError):
+        return InvestmentAmount.FROM_100_TO_500
+
 def check_coherence(profile: RawProfile) -> Dict[str, str]:
     """
     MiFID II Coherence checks.
@@ -36,7 +54,8 @@ def check_coherence(profile: RawProfile) -> Dict[str, str]:
     from .schemas import InvestmentAmount, InvestmentMode
     
     # 3. Small amount + High Risk
-    if responses.investment_amount in [InvestmentAmount.UNDER_100, InvestmentAmount.FROM_100_TO_500] and \
+    normalized_amount = normalize_investment_amount(responses.investment_amount)
+    if normalized_amount in [InvestmentAmount.UNDER_100, InvestmentAmount.FROM_100_TO_500] and \
        responses.risk_tolerance == RiskTolerance.HIGH:
         flags["amount_risk"] = "⚠️ Petit montant avec risque élevé : privilégiez une approche simple pour débuter."
 

@@ -56,8 +56,13 @@ def _matches_condition(condition: Dict[str, Any], responses: Dict[str, Any]) -> 
     Returns:
         True if all conditions are met
     """
+    from .ml_profile import normalize_investment_amount
+    
     for field, expected_value in condition.items():
         actual_value = responses.get(field)
+        
+        if field == "investment_amount" and actual_value is not None:
+            actual_value = normalize_investment_amount(actual_value).value
         
         # Handle list of acceptable values
         if isinstance(expected_value, list):
