@@ -461,7 +461,7 @@
 
                     const sign = isPositive ? '+' : '';
                     variationClass = isPositive ? 'var(--success)' : 'var(--danger)';
-                    variationContent = `<span style="color: ${variationClass}; font-weight: 700; font-size: 0.8rem; margin-left: 0.5rem;" title="Évolution du prix de l'actif sur les 3 dernières années">${sign}${perf.toFixed(2)}% (3A) <svg style="display:inline; color:var(--text-muted); opacity:0.6; vertical-align:middle; width:13px; height:13px; margin-left:2px; cursor:help;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>`;
+                    variationContent = `<span style="color: ${variationClass}; font-weight: 700; font-size: 0.8rem; margin-left: 0.5rem;">${sign}${perf.toFixed(2)}% (3A) <svg style="display:inline; color:var(--text-muted); opacity:0.6; vertical-align:middle; width:13px; height:13px; margin-left:2px; cursor:help;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Évolution du prix de l'actif sur les 3 dernières années</title><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span>`;
                 }
 
                 const sparklineColor = isPositive ? '#10B981' : '#EF4444'; // Vert ou Rouge
@@ -619,7 +619,7 @@
                 const perf = (startRaw !== 0) ? (diff / startRaw) * 100 : 0;
                 const color = isPositive ? 'var(--success)' : 'var(--danger)';
                 const sign = isPositive ? '+' : '';
-                variationHeader = `<div style="font-size: 1.2rem; font-weight: 700; color: ${color};" title="Cette courbe représente l'évolution du prix de l'actif sur les 3 dernières années. Une courbe verte indique une hausse, une courbe rouge indique une baisse.">${sign}${perf.toFixed(2)}% (3 ans) <svg style="display:inline; color:var(--text-muted); opacity:0.6; cursor:help; vertical-align:middle; width:16px; height:16px; margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>`;
+                variationHeader = `<div style="font-size: 1.2rem; font-weight: 700; color: ${color};">${sign}${perf.toFixed(2)}% (3 ans) <svg style="display:inline; color:var(--text-muted); opacity:0.6; cursor:help; vertical-align:middle; width:16px; height:16px; margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><title>Cette courbe représente l'évolution du prix de l'actif sur les 3 dernières années. Une courbe verte indique une hausse, une courbe rouge indique une baisse.</title><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></div>`;
             }
 
             body.innerHTML = `
