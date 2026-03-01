@@ -190,7 +190,8 @@
     transform: translateY(0);
 }
 
-.dropdown-item {
+.dropdown-item,
+.dropdown-item:visited {
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -200,10 +201,6 @@
     font-size: 0.9rem;
     transition: all var(--transition-fast);
     border-bottom: 1px solid var(--border-light);
-}
-
-.dropdown-item:last-child {
-    border-bottom: none;
 }
 
 .dropdown-item:hover {
@@ -251,6 +248,17 @@ a:visited {
     color: var(--primary);
     text-decoration: none;
     transition: color var(--transition-fast);
+}
+
+/* Ensure navbar links in .nav-links use their own color regardless of visited status */
+.nav-links a,
+.nav-links a:visited {
+    color: var(--text-secondary);
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+    color: var(--primary);
 }
 
 a:hover,
