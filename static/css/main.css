@@ -248,7 +248,7 @@ body {
 
 a,
 a:visited {
-    color: var(--primary) !important;
+    color: var(--primary);
     text-decoration: none;
     transition: color var(--transition-fast);
 }
