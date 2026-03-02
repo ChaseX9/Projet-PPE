@@ -234,7 +234,10 @@ html {
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: var(--bg-body);
+    background:
+        radial-gradient(ellipse at 30% 40%, rgba(74, 144, 164, 0.40) 0%, transparent 65%),
+        radial-gradient(ellipse at 75% 70%, rgba(74, 144, 164, 0.22) 0%, transparent 55%),
+        #1A1714;
     color: var(--text-main);
     line-height: 1.6;
     font-size: 15px;
