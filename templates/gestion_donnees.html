@@ -254,9 +254,23 @@
             z-index: 0;
             pointer-events: none;
         }
-        .navbar    { position: sticky; z-index: 1000; }
-        .container { position: relative; z-index: 1; }
-        .card, .modal-content, .auth-container { position: relative; z-index: 1; }
+
+        .navbar {
+            position: sticky;
+            z-index: 1000;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card,
+        .modal-content,
+        .auth-container {
+            position: relative;
+            z-index: 1;
+        }
     </style>
     <nav class="navbar">
         <div class="nav-container">
@@ -318,11 +332,11 @@
         <a href="/espace_perso.html" class="back-link">← Retour à l'espace personnel</a>
 
         <div class="data-management-container">
-            <h1 style="margin-bottom: 2rem;">🔒 Gestion de mes Données Personnelles</h1>
+            <h1 style="margin-bottom: 2rem;">Gestion de mes Données Personnelles</h1>
 
             <!-- Gestion des consentements -->
             <div class="data-section">
-                <h2>⚙️ Mes Préférences de Confidentialité</h2>
+                <h2>Mes Préférences de Confidentialité</h2>
                 <p>Gérez vos consentements pour les cookies et communications. Vous pouvez modifier ces préférences à
                     tout moment.</p>
 
@@ -349,7 +363,7 @@
                 </div>
 
                 <div class="info-box">
-                    <div style="font-size: 1.2rem; flex-shrink: 0;">ℹ️</div>
+                    <div style="font-size: 1.2rem; flex-shrink: 0;"></div>
                     <div>
                         <strong>Note :</strong> Les cookies essentiels (authentification) ne peuvent pas être désactivés
                         car ils sont nécessaires au fonctionnement du service.
@@ -361,7 +375,7 @@
 
             <!-- Modification des données -->
             <div class="data-section">
-                <h2>✏️ Modifier mes Informations</h2>
+                <h2>Modifier mes Informations</h2>
                 <p>Modifiez vos informations personnelles et votre mot de passe.</p>
                 <button class="premium-btn" onclick="openEditModal()">
                     <div class="btn-icon">
@@ -377,8 +391,8 @@
 
             <!-- Zone danger: Suppression de compte -->
             <div class="data-section danger-zone">
-                <h2>🗑️ Supprimer mon Compte</h2>
-                <p><strong>⚠️ ATTENTION :</strong> Cette action est irréversible. Toutes vos données seront
+                <h2>Supprimer mon Compte</h2>
+                <p><strong>ATTENTION :</strong> Cette action est irréversible. Toutes vos données seront
                     définitivement supprimées :</p>
                 <ul style="color: var(--danger); margin-left: 1.5rem; margin-bottom: 1rem;">
                     <li>Compte utilisateur</li>
@@ -404,7 +418,7 @@
 
             <!-- Informations RGPD -->
             <div class="data-section">
-                <h2>📋 Vos Droits RGPD</h2>
+                <h2>Vos Droits RGPD</h2>
                 <p>Conformément au RGPD, vous disposez des droits suivants :</p>
                 <ul style="color: var(--text-muted); margin-left: 1.5rem;">
                     <li><strong>Droit d'accès :</strong> Obtenir une copie de vos données (disponible dans votre profil)
@@ -426,7 +440,7 @@
     <!-- Modal de confirmation de suppression -->
     <div id="deleteModal" class="modal">
         <div class="modal-content">
-            <h3>⚠️ Confirmer la suppression</h3>
+            <h3>Confirmer la suppression</h3>
             <p>Cette action est <strong>irréversible</strong>. Toutes vos données seront définitivement supprimées.</p>
             <p>Pour confirmer, veuillez saisir votre mot de passe :</p>
             <input type="password" id="delete-password" placeholder="Mot de passe"
@@ -446,7 +460,7 @@
     <!-- Modal de modification d'informations -->
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <h3 style="color: var(--primary);">✏️ Modifier mes informations</h3>
+            <h3 style="color: var(--primary);">Modifier mes informations</h3>
             <p>Modifiez vos informations personnelles ci-dessous.</p>
 
             <div style="margin: 1rem 0;">
@@ -651,17 +665,17 @@
                 if (newPassword || currentPassword || confirmPassword) {
                     if (!currentPassword) {
                         statusDiv.style.color = '#ff4d4f';
-                        statusDiv.textContent = '❌ Mot de passe actuel requis pour changer le mot de passe';
+                        statusDiv.textContent = 'Mot de passe actuel requis pour changer le mot de passe';
                         return;
                     }
                     if (newPassword !== confirmPassword) {
                         statusDiv.style.color = '#ff4d4f';
-                        statusDiv.textContent = '❌ Les nouveaux mots de passe ne correspondent pas';
+                        statusDiv.textContent = 'Les nouveaux mots de passe ne correspondent pas';
                         return;
                     }
                     if (newPassword.length < 6) {
                         statusDiv.style.color = '#ff4d4f';
-                        statusDiv.textContent = '❌ Le nouveau mot de passe doit contenir au moins 6 caractères';
+                        statusDiv.textContent = 'Le nouveau mot de passe doit contenir au moins 6 caractères';
                         return;
                     }
                 }
@@ -691,7 +705,7 @@
                 }, 2000);
             } catch (err) {
                 statusDiv.style.color = '#ff4d4f';
-                statusDiv.textContent = `❌ Erreur: ${err.message || 'Impossible de mettre à jour les informations'}`;
+                statusDiv.textContent = `Erreur: ${err.message || 'Impossible de mettre à jour les informations'}`;
             }
         }
 
@@ -701,35 +715,37 @@
     </script>
 
     <script>
-    /* Floating particles */
-    (function () {
-        var canvas = document.getElementById('particles-bg');
-        if (!canvas) return;
-        var ctx = canvas.getContext('2d');
-        var W, H, dots = [];
-        var COUNT = 45;
-        function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-        function init() {
-            dots = [];
-            for (var i = 0; i < COUNT; i++) {
-                dots.push({ x: Math.random()*W, y: Math.random()*H,
-                    r: Math.random()*1.8+0.8, vx: (Math.random()-0.5)*0.18,
-                    vy: (Math.random()-0.5)*0.18, alpha: Math.random()*0.35+0.1 });
+        /* Floating particles */
+        (function () {
+            var canvas = document.getElementById('particles-bg');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var W, H, dots = [];
+            var COUNT = 45;
+            function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+            function init() {
+                dots = [];
+                for (var i = 0; i < COUNT; i++) {
+                    dots.push({
+                        x: Math.random() * W, y: Math.random() * H,
+                        r: Math.random() * 1.8 + 0.8, vx: (Math.random() - 0.5) * 0.18,
+                        vy: (Math.random() - 0.5) * 0.18, alpha: Math.random() * 0.35 + 0.1
+                    });
+                }
             }
-        }
-        function loop() {
-            ctx.clearRect(0,0,W,H);
-            for (var i=0;i<dots.length;i++) {
-                var d=dots[i]; d.x+=d.vx; d.y+=d.vy;
-                if(d.x<0||d.x>W)d.vx*=-1; if(d.y<0||d.y>H)d.vy*=-1;
-                ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-                ctx.fillStyle='rgba(74,144,164,'+d.alpha+')'; ctx.fill();
+            function loop() {
+                ctx.clearRect(0, 0, W, H);
+                for (var i = 0; i < dots.length; i++) {
+                    var d = dots[i]; d.x += d.vx; d.y += d.vy;
+                    if (d.x < 0 || d.x > W) d.vx *= -1; if (d.y < 0 || d.y > H) d.vy *= -1;
+                    ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(74,144,164,' + d.alpha + ')'; ctx.fill();
+                }
+                requestAnimationFrame(loop);
             }
-            requestAnimationFrame(loop);
-        }
-        window.addEventListener('resize',function(){resize();init()});
-        resize(); init(); loop();
-    })();
+            window.addEventListener('resize', function () { resize(); init() });
+            resize(); init(); loop();
+        })();
     </script>
 </body>
 
