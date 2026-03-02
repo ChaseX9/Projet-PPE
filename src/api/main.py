@@ -52,7 +52,7 @@ async def startup_event():
         finally:
             db.close()
             
-        load_or_update_universe(max_age_days=7)
+        load_or_update_universe(max_age_days=2)
         print("✓ Universe ready")
     except Exception as e:
         print(f"Warning during startup: {e}")

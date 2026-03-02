@@ -504,7 +504,7 @@ def fetch_universe_batch(tickers: List[str], asset_type: AssetType) -> pd.DataFr
     return df
 
 
-def load_or_update_universe(max_age_days: int = 7) -> pd.DataFrame:
+def load_or_update_universe(max_age_days: int = 2) -> pd.DataFrame:
     """Load universe from cache or update if older than max_age_days."""
     age = get_universe_age(UNIVERSE_FILE)
     
