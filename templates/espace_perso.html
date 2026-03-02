@@ -8,105 +8,22 @@
 </head>
 
 <body>
-    <!-- Finance Silhouette Background -->
-    <div id="fin-bg" aria-hidden="true">
-
-        <!-- Skyline gauche -->
-        <svg class="fin-silhouette" style="left:0;bottom:0;width:520px;opacity:0.055;" viewBox="0 0 520 260"
-            preserveAspectRatio="xMinYMax meet" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <rect x="10" y="160" width="40" height="100" />
-            <rect x="20" y="120" width="20" height="40" /><!-- antenne -->
-            <rect x="28" y="100" width="4" height="20" />
-            <rect x="60" y="130" width="55" height="130" />
-            <rect x="75" y="110" width="25" height="20" />
-            <rect x="125" y="150" width="35" height="110" />
-            <rect x="170" y="100" width="60" height="160" />
-            <rect x="185" y="80" width="30" height="20" />
-            <rect x="240" y="170" width="30" height="90" />
-            <rect x="280" y="120" width="50" height="140" />
-            <rect x="290" y="100" width="30" height="20" />
-            <rect x="340" y="145" width="40" height="115" />
-            <rect x="390" y="90" width="65" height="170" />
-            <rect x="400" y="70" width="45" height="20" />
-            <rect x="415" y="50" width="15" height="20" /><!-- pointe -->
-            <rect x="460" y="160" width="50" height="100" />
-        </svg>
-
-        <!-- Graphique courbe haut droite -->
-        <svg class="fin-silhouette" style="right:2%;top:80px;width:340px;opacity:0.05;" viewBox="0 0 340 180"
-            fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"
-            xmlns="http://www.w3.org/2000/svg">
-            <polyline points="0,150 40,120 80,130 120,90 160,100 200,60 240,70 280,30 320,10" />
-            <!-- Axes -->
-            <line x1="0" y1="0" x2="0" y2="175" stroke-width="3" />
-            <line x1="0" y1="175" x2="340" y2="175" stroke-width="3" />
-        </svg>
-
-        <!-- Taureau de Wall Street (silhouette simplifiée) - milieu droite -->
-        <svg class="fin-silhouette" style="right:5%;bottom:20px;width:280px;opacity:0.05;" viewBox="0 0 280 200"
-            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <!-- corps -->
-            <ellipse cx="140" cy="120" rx="80" ry="50" />
-            <!-- tête -->
-            <ellipse cx="60" cy="100" rx="35" ry="28" />
-            <!-- cornes -->
-            <path d="M35,80 Q10,40 30,25 Q45,50 50,75 Z" />
-            <path d="M60,75 Q70,35 90,28 Q80,55 75,78 Z" />
-            <!-- pattes -->
-            <rect x="90" y="165" width="18" height="35" rx="5" />
-            <rect x="120" y="165" width="18" height="35" rx="5" />
-            <rect x="155" y="165" width="18" height="35" rx="5" />
-            <rect x="185" y="165" width="18" height="35" rx="5" />
-            <!-- queue -->
-            <path d="M220,120 Q255,100 260,130 Q250,150 235,145" fill="none" stroke="currentColor" stroke-width="6"
-                stroke-linecap="round" />
-        </svg>
-
-        <!-- Balance / Justice (milieu-haut gauche) -->
-        <svg class="fin-silhouette" style="left:36%;top:60px;width:160px;opacity:0.045;" viewBox="0 0 160 180"
-            fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"
-            xmlns="http://www.w3.org/2000/svg">
-            <!-- axe vertical -->
-            <line x1="80" y1="10" x2="80" y2="160" />
-            <!-- barre horizontale -->
-            <line x1="15" y1="50" x2="145" y2="50" />
-            <!-- chaînes plateaux -->
-            <line x1="15" y1="50" x2="15" y2="85" />
-            <line x1="145" y1="50" x2="145" y2="95" />
-            <!-- plateaux -->
-            <path d="M0,85 Q15,105 30,85" />
-            <path d="M130,95 Q145,115 160,95" />
-            <!-- socle -->
-            <line x1="55" y1="160" x2="105" y2="160" />
-        </svg>
-
-        <!-- Fusée (haut-centre-droit) -->
-        <svg class="fin-silhouette" style="right:28%;top:30px;width:80px;opacity:0.05;" viewBox="0 0 80 200"
-            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-            <!-- corps -->
-            <path d="M40,5 Q60,40 60,100 L20,100 Q20,40 40,5 Z" />
-            <!-- nez -->
-            <path d="M40,5 L55,40 Q40,20 25,40 Z" />
-            <!-- ailerons -->
-            <path d="M20,100 L5,140 L20,120 Z" />
-            <path d="M60,100 L75,140 L60,120 Z" />
-            <!-- flammes -->
-            <path d="M30,100 Q35,130 40,120 Q45,130 50,100 Z" opacity="0.6" />
-        </svg>
-    </div>
-
+    <!-- Radial Gradient + Particles Background -->
+    <canvas id="particles-bg" aria-hidden="true"></canvas>
     <style>
-        #fin-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-            color: var(--primary);
+        body {
+            background: radial-gradient(ellipse at 30% 40%, rgba(53, 115, 135, 0.18) 0%, transparent 65%),
+                radial-gradient(ellipse at 75% 70%, rgba(74, 144, 164, 0.10) 0%, transparent 55%),
+                #1A1714;
         }
 
-        .fin-silhouette {
-            position: absolute;
+        #particles-bg {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
         }
 
         .navbar {
@@ -572,6 +489,58 @@
             } else {
                 setTimeout(onbShow, 500);
             }
+        })();
+    </script>
+
+    <script>
+        /* Floating particles – no lines, very slow, purely decorative */
+        (function () {
+            var canvas = document.getElementById('particles-bg');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var W, H;
+            var COUNT = 45;
+            var dots = [];
+
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = window.innerHeight;
+            }
+
+            function init() {
+                dots = [];
+                for (var i = 0; i < COUNT; i++) {
+                    dots.push({
+                        x: Math.random() * W,
+                        y: Math.random() * H,
+                        r: Math.random() * 1.8 + 0.8,
+                        vx: (Math.random() - 0.5) * 0.18,
+                        vy: (Math.random() - 0.5) * 0.18,
+                        alpha: Math.random() * 0.35 + 0.1
+                    });
+                }
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, W, H);
+                for (var i = 0; i < dots.length; i++) {
+                    var d = dots[i];
+                    d.x += d.vx;
+                    d.y += d.vy;
+                    if (d.x < 0 || d.x > W) d.vx *= -1;
+                    if (d.y < 0 || d.y > H) d.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(74,144,164,' + d.alpha + ')';
+                    ctx.fill();
+                }
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', function () { resize(); init(); });
+            resize();
+            init();
+            loop();
         })();
     </script>
 
