@@ -14,7 +14,7 @@ from ..profile.ml_profile import refine_profile
 from ..portfolio.recommender import build_portfolio
 from ..database.database import get_db
 from ..database.models import User, SavedProfile, SavedPortfolio
-from ..auth.dependencies import get_optional_user
+from ..auth.dependencies import get_optional_user, get_verified_user
 
 router = APIRouter()
 
@@ -159,7 +159,7 @@ async def get_universe_stats():
 @router.post("/api/recommandation/alternative", response_model=RecommendationResponse, tags=["Recommendation"])
 async def get_alternative_recommendation(
     portfolio_id: int,
-    current_user: Optional[User] = Depends(get_optional_user),
+    current_user: User = Depends(get_verified_user),
     db: Session = Depends(get_db)
 ):
     """Generate an alternative portfolio based on the same profile (deterministic variation)."""

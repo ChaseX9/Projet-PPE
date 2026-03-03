@@ -12,8 +12,8 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String)
-    is_active = Column(Boolean, default=True)
-    email_verified = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=False)
+    email_verified = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # GDPR Compliance fields
@@ -169,5 +169,20 @@ class UserTrainingStats(Base):
     daily_modules = Column(JSON, default=dict)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Relationships
+    user = relationship("User")
+
+
+class AuthToken(Base):
+    """Tokens for email verification and password reset."""
+    __tablename__ = "auth_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token = Column(String, unique=True, index=True, nullable=False)
+    type = Column(String, nullable=False)  # 'verify' or 'reset'
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
     # Relationships
     user = relationship("User")

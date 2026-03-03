@@ -30,5 +30,5 @@ def get_db():
 
 def init_db():
     """Initialize database tables."""
-    from .models import User, SavedProfile, SavedPortfolio, Module, Lesson, Question, UserLessonProgress, UserTrainingStats
+    from .models import User, SavedProfile, SavedPortfolio, Module, Lesson, Question, UserLessonProgress, UserTrainingStats, AuthToken
     Base.metadata.create_all(bind=engine)

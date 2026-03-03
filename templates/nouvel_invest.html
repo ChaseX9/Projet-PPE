@@ -660,6 +660,58 @@
                         </div>
                     </div>
 
+                    <div class="card" id="rebalancing-card"
+                        style="display: none; margin-top: 1rem; border-left: 4px solid var(--primary);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.8rem;">
+                            <div
+                                style="background: rgba(var(--primary-rgb), 0.1); padding: 0.5rem; border-radius: 8px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-4.4 3.6-8 8-8 3.3 0 6.2 2 7.4 4.9M22 12c0 4.4-3.6 8-8 8-3.3 0-6.2-2-7.4-4.9" />
+                                </svg>
+                            </div>
+                            <h3 style="margin: 0;">Gestion du Rééquilibrage</h3>
+                        </div>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                            L'algorithme surveille en permanence votre portefeuille. Une limite de <strong>50% par
+                                secteur</strong> est appliquée pour éviter toute concentration excessive.
+                        </p>
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                            <label
+                                style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Mode
+                                de suivi souhaité</label>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.2s;"
+                                    onmouseover="this.style.borderColor='var(--primary)'"
+                                    onmouseout="this.style.borderColor='var(--border)'">
+                                    <input type="radio" name="rebalance_mode" value="periodic" checked
+                                        style="width: auto; margin: 0;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-size: 0.9rem; font-weight: 600;">Rééquilibrage
+                                            Périodique</span>
+                                        <span style="font-size: 0.75rem; color: var(--text-muted);">Ajustement
+                                            automatique tous les 6 mois.</span>
+                                    </div>
+                                </label>
+                                <label
+                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.2s;"
+                                    onmouseover="this.style.borderColor='var(--primary)'"
+                                    onmouseout="this.style.borderColor='var(--border)'">
+                                    <input type="radio" name="rebalance_mode" value="threshold"
+                                        style="width: auto; margin: 0;">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <span style="font-size: 0.9rem; font-weight: 600;">Rééquilibrage par Seuil
+                                            (+5%)</span>
+                                        <span style="font-size: 0.75rem; color: var(--text-muted);">Ajustement dès qu'un
+                                            actif dévie trop.</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card" id="coherence-card" style="display: none; border: 1px solid var(--warning);">
                         <h3 style="color: var(--warning);">Alerte Cohérence</h3>
                         <p id="coherence-msg" style="font-size: 0.9rem; margin-top: 0.5rem;"></p>
@@ -671,6 +723,7 @@
 
 
 
+    <script src="/static/js/ui.js"></script>
     <script src="/static/js/jspdf.umd.min.js"></script>
 
     <!-- PDF report templates removed (using direct jsPDF instead) -->
@@ -680,7 +733,7 @@
 
         function exportPDF() {
             if (!currentPortfolioData) {
-                alert('Veuillez d\'abord générer une recommandation avant d\'exporter le PDF.');
+                UI.toast('Veuillez d\'abord générer une recommandation avant d\'exporter le PDF.', 'warning');
                 return;
             }
             var res = currentPortfolioData;
@@ -688,7 +741,7 @@
             var jsPDFLib = (window.jspdf && window.jspdf.jsPDF)
                 || window.jsPDF
                 || (typeof jsPDF !== 'undefined' ? jsPDF : null);
-            if (!jsPDFLib) { alert('jsPDF non disponible. Rechargez la page.'); return; }
+            if (!jsPDFLib) { UI.alert('jsPDF non disponible. Rechargez la page.', 'Erreur', 'error'); return; }
 
             var doc = new jsPDFLib({ unit: 'mm', format: 'a4' });
             var W = 210, margin = 15;
@@ -778,7 +831,7 @@
                 y += 5;
                 if (y > 260) { doc.addPage(); y = 20; }
                 doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(235, 230, 220);
-                doc.text('Analyse de l\'IA', margin, y);
+                doc.text('Analyse de l\'algorithme', margin, y);
                 y += 6;
                 doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(196, 186, 176);
                 var splitText = doc.splitTextToSize(explainEl.textContent.trim(), W - 2 * margin);
@@ -1099,7 +1152,8 @@
                 const res = await api.post('/api/recommandation', payload);
                 displayResult(res);
             } catch (err) {
-                alert('Erreur: ' + err.message);
+                console.error(err);
+                UI.alert('Une erreur est survenue lors de la génération : ' + err.message, 'Erreur', 'error');
             } finally {
                 btn.disabled = false;
                 spinner.style.display = 'none';
@@ -1119,7 +1173,9 @@
             if (res.profile.raw_responses) {
                 const recap = document.getElementById('profile-recap-card');
                 const list = document.getElementById('profile-recap-list');
+                const rebalance = document.getElementById('rebalancing-card');
                 recap.style.display = 'block';
+                if (rebalance) rebalance.style.display = 'block';
                 const r = res.profile.raw_responses;
 
                 const labels = {
@@ -1284,22 +1340,22 @@
 
         async function acceptPortfolio() {
             if (!currentPortfolioId) {
-                alert('Aucun portefeuille à accepter');
+                UI.toast('Aucun portefeuille à accepter', 'warning');
                 return;
             }
 
             try {
                 const response = await api.post(`/api/portfolios/${currentPortfolioId}/accept`);
-                alert('Portefeuille enregistré avec succès !');
-                window.location.href = '/suivi_invest.html';
+                UI.toast('Portefeuille enregistré avec succès !', 'success');
+                setTimeout(() => window.location.href = '/suivi_invest.html', 1500);
             } catch (err) {
-                alert('Erreur lors de l\'acceptation : ' + err.message);
+                UI.alert('Erreur lors de l\'acceptation : ' + err.message, 'Erreur', 'error');
             }
         }
 
         async function regeneratePortfolio() {
             if (!lastFormData) {
-                alert('Erreur: Impossible de régénérer (données manquantes)');
+                UI.toast('Erreur: Impossible de régénérer (données manquantes)', 'error');
                 return;
             }
 
@@ -1311,9 +1367,9 @@
                 // Re-submit the SAME questionnaire to get a new portfolio
                 const res = await api.post('/api/recommandation', lastFormData);
                 displayResult(res);
-                // Note: No alert here to avoid interrupting the user flow
+                UI.toast('Nouvelle proposition générée', 'success');
             } catch (err) {
-                alert('Erreur lors de la régénération : ' + err.message);
+                UI.alert('Erreur lors de la régénération : ' + err.message, 'Erreur', 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Autre proposition';
@@ -1328,11 +1384,11 @@
 
             try {
                 await api.post(`/api/portfolios/${currentPortfolioId}/reject`);
-                alert('Proposition annulée.');
-                window.location.href = '/espace_perso.html';
+                UI.toast('Proposition annulée.', 'info');
+                setTimeout(() => window.location.href = '/espace_perso.html', 1000);
             } catch (err) {
-                alert('Erreur lors de l\'annulation : ' + err.message);
-                window.location.href = '/espace_perso.html';
+                UI.alert('Erreur lors de l\'annulation : ' + err.message, 'Erreur', 'error');
+                setTimeout(() => window.location.href = '/espace_perso.html', 2000);
             }
         }
     </script>

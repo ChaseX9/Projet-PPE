@@ -18,6 +18,13 @@ fi
 # Add current directory to PYTHONPATH
 export PYTHONPATH=$PYTHONPATH:.
 
+# --- Configuration Email (SMTP) ---
+# Remplacez par vos identifiants réels (ou utilisez un fichier .env)
+export SMTP_USER="votre-email@gmail.com"
+export SMTP_PASSWORD="votre-mot-de-passe-application"
+export BASE_URL="http://127.0.0.1:8000"
+# ----------------------------------
+
 # Check if port 8000 is already in use
 PORT=8000
 PID=$(lsof -ti :$PORT)

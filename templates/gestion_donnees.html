@@ -463,10 +463,17 @@
             <h3 style="color: var(--primary);">Modifier mes informations</h3>
             <p>Modifiez vos informations personnelles ci-dessous.</p>
 
-            <div style="margin: 1rem 0;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nom complet</label>
-                <input type="text" id="edit-fullname" placeholder="Nom complet"
-                    style="width: 100%; padding: 0.75rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nom</label>
+                    <input type="text" id="edit-lastname" placeholder="Nom"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Prénom</label>
+                    <input type="text" id="edit-firstname" placeholder="Prénom"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #d9d9d9; border-radius: 4px;">
+                </div>
             </div>
 
             <div style="margin: 1rem 0;">
@@ -498,6 +505,7 @@
         </div>
     </div>
 
+    <script src="/static/js/ui.js"></script>
     <script src="/static/js/api.js?v=1.1"></script>
     <script>
         if (!api.isAuthenticated()) {
@@ -559,7 +567,7 @@
                     document.getElementById('consent-status').textContent = '';
                 }, 3000);
             } catch (err) {
-                alert('Erreur lors de la mise à jour des préférences');
+                UI.toast('Erreur lors de la mise à jour des préférences', 'error');
             }
         }
 
@@ -584,7 +592,7 @@
                     document.getElementById('export-status').textContent = '';
                 }, 5000);
             } catch (err) {
-                alert('Erreur lors de l\'export des données');
+                UI.alert('Erreur lors de l\'export des données : ' + err.message, 'Erreur', 'error');
             }
         }
 
@@ -613,8 +621,8 @@
                     confirm_deletion: true
                 });
 
-                alert('Votre compte a été supprimé. Vous allez être redirigé.');
-                window.location.href = '/login.html';
+                UI.toast('Compte supprimé avec succès.', 'success');
+                setTimeout(() => window.location.href = '/login.html', 1500);
             } catch (err) {
                 console.error('Deletion error:', err);
                 const errorDiv = document.getElementById('delete-error');
@@ -639,7 +647,13 @@
         // Edit profile modal
         async function openEditModal() {
             const user = await api.getMe();
-            document.getElementById('edit-fullname').value = user.full_name || '';
+            // Split full_name (assuming format "LastName FirstName")
+            const parts = (user.full_name || '').split(' ');
+            const lastName = parts[0] || '';
+            const firstName = parts.slice(1).join(' ') || '';
+
+            document.getElementById('edit-lastname').value = lastName;
+            document.getElementById('edit-firstname').value = firstName;
             document.getElementById('edit-email').value = user.email || '';
             document.getElementById('edit-current-password').value = '';
             document.getElementById('edit-new-password').value = '';
@@ -653,7 +667,9 @@
         }
 
         async function saveProfileChanges() {
-            const fullname = document.getElementById('edit-fullname').value;
+            const lastName = document.getElementById('edit-lastname').value.trim();
+            const firstName = document.getElementById('edit-firstname').value.trim();
+            const fullname = `${lastName} ${firstName}`.trim();
             const email = document.getElementById('edit-email').value;
             const currentPassword = document.getElementById('edit-current-password').value;
             const newPassword = document.getElementById('edit-new-password').value;
@@ -661,6 +677,9 @@
             const statusDiv = document.getElementById('edit-status');
 
             try {
+                // Reset status
+                statusDiv.textContent = '';
+
                 // Validate password change if provided
                 if (newPassword || currentPassword || confirmPassword) {
                     if (!currentPassword) {
@@ -673,9 +692,9 @@
                         statusDiv.textContent = 'Les nouveaux mots de passe ne correspondent pas';
                         return;
                     }
-                    if (newPassword.length < 6) {
+                    if (newPassword.length < 8) {
                         statusDiv.style.color = '#ff4d4f';
-                        statusDiv.textContent = 'Le nouveau mot de passe doit contenir au moins 6 caractères';
+                        statusDiv.textContent = 'Le nouveau mot de passe doit contenir au moins 8 caractères';
                         return;
                     }
                 }
@@ -694,18 +713,18 @@
                 // Send update request
                 await api.patch('/auth/me', updateData);
 
-                statusDiv.style.color = 'var(--success)';
-                statusDiv.textContent = '✓ Informations mises à jour avec succès !';
+                UI.toast('Profil mis à jour avec succès !', 'success');
 
                 // Update username in dropdown
                 document.getElementById('user-menu-name').textContent = fullname;
 
-                setTimeout(() => {
-                    closeEditModal();
-                }, 2000);
+                closeEditModal();
+
+                // Reload profile info on page
+                if (typeof loadUserProfile === 'function') loadUserProfile();
             } catch (err) {
-                statusDiv.style.color = '#ff4d4f';
-                statusDiv.textContent = `Erreur: ${err.message || 'Impossible de mettre à jour les informations'}`;
+                console.error('Update error:', err);
+                UI.alert(err.message || 'Impossible de mettre à jour les informations', 'Erreur', 'error');
             }
         }
 

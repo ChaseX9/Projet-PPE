@@ -46,9 +46,23 @@
             z-index: 0;
             pointer-events: none;
         }
-        .navbar    { position: sticky; z-index: 1000; }
-        .container { position: relative; z-index: 1; }
-        .card, .modal-content, .auth-container { position: relative; z-index: 1; }
+
+        .navbar {
+            position: sticky;
+            z-index: 1000;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .card,
+        .modal-content,
+        .auth-container {
+            position: relative;
+            z-index: 1;
+        }
     </style>
     <nav class="navbar">
         <div class="nav-container">
@@ -221,6 +235,7 @@
         </div>
     </div>
 
+    <script src="/static/js/ui.js"></script>
     <script src="/static/js/jspdf.umd.min.js"></script>
     <script src="/static/js/api.js?v=2"></script>
     <script>
@@ -260,7 +275,7 @@
 
         function exportSuiviPDF() {
             if (!currentSuiviData) {
-                alert('Veuillez d\'abord ouvrir un portefeuille.');
+                UI.toast('Veuillez d\'abord ouvrir un portefeuille.', 'warning');
                 return;
             }
             var res = currentSuiviData;
@@ -271,11 +286,11 @@
                 || (typeof jsPDF !== 'undefined' ? jsPDF : null);
             console.log('[PDF] jsPDF found:', !!jsPDFLib, 'res.portfolio:', !!res.portfolio);
             if (!jsPDFLib) {
-                alert('Erreur : jsPDF n\'est pas chargé. Rechargez la page.');
+                UI.alert('Erreur : jsPDF n\'est pas chargé. Rechargez la page.', 'Erreur', 'error');
                 return;
             }
             if (!res.portfolio || !res.portfolio.positions) {
-                alert('Données du portefeuille invalides ou manquantes.');
+                UI.toast('Données du portefeuille invalides ou manquantes.', 'error');
                 return;
             }
 
@@ -402,7 +417,8 @@
 
                 document.getElementById('details-modal').style.display = 'block';
             } catch (err) {
-                alert("Erreur lors de la récupération des détails : " + err.message);
+                console.error(err);
+                UI.alert("Erreur lors de la récupération des détails : " + err.message, "Erreur", "error");
             }
         }
 
@@ -426,9 +442,8 @@
             const btn = e ? e.currentTarget : null;
             const originalText = btn ? btn.innerHTML : 'Supprimer';
 
-            if (!confirm('Voulez-vous vraiment supprimer ce portefeuille ? Cette action est irréversible.')) {
-                return;
-            }
+            const confirmed = await UI.confirm('Voulez-vous vraiment supprimer ce portefeuille ? Cette action est irréversible.', 'Supprimer le portefeuille', true);
+            if (!confirmed) return;
 
             try {
                 if (btn) {
@@ -438,6 +453,7 @@
                 }
 
                 await api.delete(`/api/portfolios/${id}`);
+                UI.toast('Portefeuille supprimé', 'success');
 
                 // Refresh the list
                 await loadPortfolios();
@@ -445,7 +461,7 @@
                 console.log(`Portfolio ${id} deleted successfully`);
             } catch (err) {
                 console.error('Delete failed:', err);
-                alert(`Erreur lors de la suppression : ${err.message}`);
+                UI.alert(`Erreur lors de la suppression : ${err.message}`, 'Erreur', 'error');
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = originalText;
@@ -492,35 +508,37 @@
 
 
     <script>
-    /* Floating particles */
-    (function () {
-        var canvas = document.getElementById('particles-bg');
-        if (!canvas) return;
-        var ctx = canvas.getContext('2d');
-        var W, H, dots = [];
-        var COUNT = 45;
-        function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-        function init() {
-            dots = [];
-            for (var i = 0; i < COUNT; i++) {
-                dots.push({ x: Math.random()*W, y: Math.random()*H,
-                    r: Math.random()*1.8+0.8, vx: (Math.random()-0.5)*0.18,
-                    vy: (Math.random()-0.5)*0.18, alpha: Math.random()*0.35+0.1 });
+        /* Floating particles */
+        (function () {
+            var canvas = document.getElementById('particles-bg');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var W, H, dots = [];
+            var COUNT = 45;
+            function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+            function init() {
+                dots = [];
+                for (var i = 0; i < COUNT; i++) {
+                    dots.push({
+                        x: Math.random() * W, y: Math.random() * H,
+                        r: Math.random() * 1.8 + 0.8, vx: (Math.random() - 0.5) * 0.18,
+                        vy: (Math.random() - 0.5) * 0.18, alpha: Math.random() * 0.35 + 0.1
+                    });
+                }
             }
-        }
-        function loop() {
-            ctx.clearRect(0,0,W,H);
-            for (var i=0;i<dots.length;i++) {
-                var d=dots[i]; d.x+=d.vx; d.y+=d.vy;
-                if(d.x<0||d.x>W)d.vx*=-1; if(d.y<0||d.y>H)d.vy*=-1;
-                ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-                ctx.fillStyle='rgba(74,144,164,'+d.alpha+')'; ctx.fill();
+            function loop() {
+                ctx.clearRect(0, 0, W, H);
+                for (var i = 0; i < dots.length; i++) {
+                    var d = dots[i]; d.x += d.vx; d.y += d.vy;
+                    if (d.x < 0 || d.x > W) d.vx *= -1; if (d.y < 0 || d.y > H) d.vy *= -1;
+                    ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(74,144,164,' + d.alpha + ')'; ctx.fill();
+                }
+                requestAnimationFrame(loop);
             }
-            requestAnimationFrame(loop);
-        }
-        window.addEventListener('resize',function(){resize();init()});
-        resize(); init(); loop();
-    })();
+            window.addEventListener('resize', function () { resize(); init() });
+            resize(); init(); loop();
+        })();
     </script>
 </body>
 

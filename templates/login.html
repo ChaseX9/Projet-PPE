@@ -134,6 +134,13 @@
                         </button>
                     </div>
                 </div>
+                <div style="text-align: right; margin-top: -1rem; margin-bottom: 1.5rem;">
+                    <a href="#" onclick="showForgot(event)"
+                        style="font-size: 0.85rem; color: var(--primary); text-decoration: none; font-weight: 500; transition: opacity 0.2s;"
+                        onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                        Mot de passe oublié ?
+                    </a>
+                </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">
                     <span>Se connecter</span>
                     <span class="loading-spinner" id="login-spinner"></span>
@@ -142,6 +149,35 @@
 
             <p class="toggle-auth">
                 Pas de compte ? <a href="#" onclick="toggleAuth(event)">S'inscrire</a>
+            </p>
+        </div>
+
+        <!-- Forgot Password Card -->
+        <div class="card" id="forgot-card" style="display: none;">
+            <h2>Mot de passe oublié</h2>
+            <p style="color: var(--text-muted); margin-bottom: 2rem;">Entrez votre email pour recevoir un lien de
+                réinitialisation sécurisé.</p>
+
+            <div id="forgot-error-container"
+                style="display: none; padding: 0.75rem; background-color: #fee2e2; border-radius: 8px; color: #b91c1c; margin-bottom: 1.5rem; font-size: 0.9rem;">
+            </div>
+            <div id="forgot-success-container"
+                style="display: none; padding: 0.75rem; background-color: #d1fae5; border-radius: 8px; color: #065f46; margin-bottom: 1.5rem; font-size: 0.9rem;">
+            </div>
+
+            <form onsubmit="handleForgotPassword(event)" novalidate>
+                <div class="form-group">
+                    <label for="forgot-email">Email</label>
+                    <input type="email" id="forgot-email" required placeholder="votre@email.com">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>Envoyer le lien</span>
+                    <span class="loading-spinner" id="forgot-spinner"></span>
+                </button>
+            </form>
+
+            <p class="toggle-auth">
+                <a href="#" onclick="showLogin(event)">Retour à la connexion</a>
             </p>
         </div>
 
@@ -154,9 +190,15 @@
             </div>
 
             <form onsubmit="handleRegister(event)" novalidate>
-                <div class="form-group">
-                    <label for="reg-name">Nom complet</label>
-                    <input type="text" id="reg-name" required>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="reg-last-name">Nom</label>
+                        <input type="text" id="reg-last-name" placeholder="Vaudin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-first-name">Prénom</label>
+                        <input type="text" id="reg-first-name" placeholder="Mael" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="reg-email">Email</label>
@@ -253,6 +295,7 @@
         </div>
     </div>
 
+    <script src="/static/js/ui.js"></script>
     <script src="/static/js/api.js"></script>
     <script>
         if (api.isAuthenticated()) {
@@ -277,12 +320,26 @@
             }
         }
 
-        function showLogin() {
+        function showLogin(e) {
+            if (e) e.preventDefault();
             document.getElementById('login-card').style.display = 'block';
             document.getElementById('register-card').style.display = 'none';
+            document.getElementById('forgot-card').style.display = 'none';
             // Clear errors
             document.getElementById('login-error-container').style.display = 'none';
             document.getElementById('register-error-container').style.display = 'none';
+            document.getElementById('forgot-error-container').style.display = 'none';
+            document.getElementById('forgot-success-container').style.display = 'none';
+        }
+
+        function showForgot(e) {
+            if (e) e.preventDefault();
+            document.getElementById('login-card').style.display = 'none';
+            document.getElementById('register-card').style.display = 'none';
+            document.getElementById('forgot-card').style.display = 'block';
+
+            document.getElementById('forgot-error-container').style.display = 'none';
+            document.getElementById('forgot-success-container').style.display = 'none';
         }
 
         function toggleAuth(e) {
@@ -299,6 +356,7 @@
             } else {
                 login.style.display = 'none';
                 register.style.display = 'block';
+                document.getElementById('forgot-card').style.display = 'none';
             }
         }
 
@@ -321,7 +379,9 @@
 
         async function handleRegister(e) {
             e.preventDefault();
-            const name = document.getElementById('reg-name').value;
+            const lastName = document.getElementById('reg-last-name').value.trim();
+            const firstName = document.getElementById('reg-first-name').value.trim();
+            const name = `${lastName} ${firstName}`;
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-password').value;
             const confirmPass = document.getElementById('reg-confirm-password').value;
@@ -354,12 +414,52 @@
             spinner.style.display = 'inline-block';
 
             try {
-                const data = await api.register(email, pass, name);
-                if (data.access_token) {
-                    api.setToken(data.access_token);
-                }
-                localStorage.removeItem('capinvest_tour_done'); localStorage.setItem('capinvest_tour_pending', '1');
-                window.location.href = '/espace_perso.html';
+                const response = await api.post('/auth/register', {
+                    email,
+                    password: pass,
+                    full_name: name,
+                    privacy_policy_accepted: true
+                });
+
+                // Show success message and hide form content
+                document.getElementById('register-card').innerHTML = `
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="background: rgba(74, 144, 164, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <h2 style="margin-bottom: 1rem; color: var(--primary);">Compte créé !</h2>
+                        <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;">${response.message}</p>
+                        <button onclick="showLogin()" class="btn btn-primary" style="width: 100%;">Retour à la connexion</button>
+                    </div>
+                `;
+                UI.toast('Compte créé avec succès !', 'success');
+            } catch (err) {
+                errorBox.textContent = err.message;
+                errorBox.style.display = 'block';
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function handleForgotPassword(e) {
+            e.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            const errorBox = document.getElementById('forgot-error-container');
+            const successBox = document.getElementById('forgot-success-container');
+            const spinner = document.getElementById('forgot-spinner');
+
+            errorBox.style.display = 'none';
+            successBox.style.display = 'none';
+            spinner.style.display = 'block';
+
+            try {
+                const response = await api.post('/auth/forgot-password', { email });
+                successBox.textContent = response.message;
+                successBox.style.display = 'block';
+                UI.toast('Email envoyé !', 'info');
             } catch (err) {
                 errorBox.textContent = err.message;
                 errorBox.style.display = 'block';

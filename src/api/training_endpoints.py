@@ -8,7 +8,7 @@ from datetime import datetime, date, timedelta
 
 from ..database.database import get_db
 from ..database.models import Module, Lesson, Question, UserLessonProgress, UserTrainingStats, User
-from ..auth.dependencies import get_current_user
+from ..auth.dependencies import get_current_user, get_verified_user
 
 router = APIRouter(prefix="/api/training", tags=["Training"])
 
@@ -252,7 +252,7 @@ def get_module(module_id: int, current_user: User = Depends(get_current_user), d
 
 
 @router.get("/lessons/{lesson_id}", response_model=LessonDetail)
-def get_lesson(lesson_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_lesson(lesson_id: int, current_user: User = Depends(get_verified_user), db: Session = Depends(get_db)):
     """Get lesson content and questions (without answers)."""
     lesson = db.query(Lesson).filter(Lesson.id == lesson_id).first()
     if not lesson:
@@ -390,7 +390,7 @@ def get_lesson(lesson_id: int, current_user: User = Depends(get_current_user), d
 def submit_lesson(
     lesson_id: int,
     submission: SubmitAnswersRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_verified_user),
     db: Session = Depends(get_db)
 ):
     """Submit lesson answers and get results."""

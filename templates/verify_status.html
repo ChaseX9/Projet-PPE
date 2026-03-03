@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapInvest - Vérification Email</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            z-index: 10;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .status-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .status-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .status-loading {
+            background: rgba(74, 144, 164, 0.1);
+            color: #4A90A4;
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(74, 144, 164, 0.2);
+            border-top: 3px solid #4A90A4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 2rem;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background: #4A90A4;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(74, 144, 164, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 164, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="particles-bg"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></canvas>
+
+    <div class="container">
+        <div class="card" id="status-card">
+            <div id="loading-view">
+                <div class="status-icon status-loading">
+                    <div class="loading-spinner"></div>
+                </div>
+                <h2>Vérification en cours...</h2>
+                <p style="color: #94a3b8;">Nous validons votre compte, veuillez patienter quelques instants.</p>
+            </div>
+
+            <div id="success-view" style="display: none;">
+                <div class="status-icon status-success">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <h2 style="color: #4A90A4;">Compte activé !</h2>
+                <p style="color: #94a3b8; line-height: 1.6;">Votre adresse email a été vérifiée avec succès. Vous pouvez
+                    désormais vous connecter à votre espace personnel.</p>
+                <a href="/login.html" class="btn btn-primary">Se connecter</a>
+            </div>
+
+            <div id="error-view" style="display: none;">
+                <div class="status-icon status-error">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <h2 style="color: #ef4444;">Lien invalide</h2>
+                <p id="error-message" style="color: #94a3b8; line-height: 1.6;">Ce lien de vérification a expiré ou
+                    n'est plus valide.</p>
+                <a href="/login.html" class="btn btn-secondary">Retour à l'accueil</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        async function verify() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const loadingView = document.getElementById('loading-view');
+            const successView = document.getElementById('success-view');
+            const errorView = document.getElementById('error-view');
+            const errorMsg = document.getElementById('error-message');
+
+            if (!token) {
+                loadingView.style.display = 'none';
+                errorView.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await api.get(`/auth/verify-email?token=${token}`);
+                loadingView.style.display = 'none';
+                successView.style.display = 'block';
+            } catch (err) {
+                loadingView.style.display = 'none';
+                errorView.style.display = 'block';
+                errorMsg.textContent = err.message || "Lien de vérification invalide ou expiré.";
+            }
+        }
+
+        window.onload = verify;
+
+        /* Floating particles */
+        (function () {
+            var canvas = document.getElementById('particles-bg');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var W, H, dots = [];
+            var COUNT = 40;
+            function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+            function init() { dots = []; for (var i = 0; i < COUNT; i++) dots.push({ x: Math.random() * W, y: Math.random() * H, r: Math.random() * 2 + 1, vx: (Math.random() - 0.5) * 0.2, vy: (Math.random() - 0.5) * 0.2, alpha: Math.random() * 0.4 + 0.1 }); }
+            function loop() { ctx.clearRect(0, 0, W, H); for (var i = 0; i < dots.length; i++) { var d = dots[i]; d.x += d.vx; d.y += d.vy; if (d.x < 0 || d.x > W) d.vx *= -1; if (d.y < 0 || d.y > H) d.vy *= -1; ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(74,144,164,' + d.alpha + ')'; ctx.fill(); } requestAnimationFrame(loop); }
+            window.addEventListener('resize', function () { resize(); init(); });
+            resize(); init(); loop();
+        })();
+    </script>
+</body>
+
+</html>
