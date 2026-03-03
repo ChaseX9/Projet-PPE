@@ -28,7 +28,7 @@ def send_verification_email(to_email: str, token: str, full_name: str):
                 
                 <h2 style="color: #1a1714;">Bienvenue {full_name} !</h2>
                 <p>Merci de vous être inscrit sur <strong>CapInvest</strong>. Nous sommes ravis de vous accompagner dans votre stratégie d'investissement.</p>
-                <p>Pour activer votre compte et accéder à toutes nos fonctionnalités Premium, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :</p>
+                <p>Pour activer votre compte et accéder à toutes nos fonctionnalités, veuillez vérifier votre adresse email en cliquant sur le bouton ci-dessous :</p>
                 
                 <div style="text-align: center; margin: 40px 0;">
                     <a href="{verify_url}" style="background-color: #4A90A4; color: white; padding: 14px 30px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">Activer mon compte</a>
