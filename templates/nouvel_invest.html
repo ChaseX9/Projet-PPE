@@ -1346,14 +1346,13 @@
                     `;
                 }
 
-                // Exclude button (only if under limit)
+                // Exclude button (only if under limit) - use data-ticker to avoid quote nesting bugs
                 const excludeBtn = excludedTickers.length < MAX_EXCLUSIONS ? `
-                    <button onclick="excludeAsset('${p.ticker}')" style="
+                    <button data-exclude-ticker="${p.ticker}" class="exclude-asset-btn" style="
                         margin-top: 0.85rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
                         background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px;
                         color: #ef4444; font-size: 0.8rem; font-weight: 600; padding: 0.5rem; cursor: pointer;
-                        transition: background 0.2s;
-                    " onmouseover="this.style.background='rgba(239,68,68,0.16)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">
+                        transition: background 0.2s;">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                         Retirer cet actif
                     </button>
@@ -1371,6 +1370,23 @@
                     ${excludeBtn}
                 `;
                 list.appendChild(card);
+            });
+
+            // Delegated listener for "Retirer" buttons (avoids innerHTML quote issues)
+            list.addEventListener('click', function (e) {
+                const btn = e.target.closest('.exclude-asset-btn');
+                if (btn) {
+                    const ticker = btn.dataset.excludeTicker;
+                    if (ticker) excludeAsset(ticker);
+                }
+            });
+            list.addEventListener('mouseover', function (e) {
+                const btn = e.target.closest('.exclude-asset-btn');
+                if (btn) btn.style.background = 'rgba(239,68,68,0.16)';
+            });
+            list.addEventListener('mouseout', function (e) {
+                const btn = e.target.closest('.exclude-asset-btn');
+                if (btn) btn.style.background = 'rgba(239,68,68,0.08)';
             });
 
             // Portfolio explanation
@@ -1457,7 +1473,7 @@
             } catch (err) {
                 UI.alert('Erreur lors de la régénération : ' + err.message, 'Erreur', 'error');
             } finally {
-                btn.disabled = false;
+                disa;
                 btn.innerHTML = 'Autre proposition';
             }
         }
