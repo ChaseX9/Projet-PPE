@@ -66,6 +66,7 @@ class QuestionnaireInput(BaseModel):
     
     # Optional details
     esg_preference: bool = False
+    sector_preferences: Optional[List[str]] = None
     liquidity_need: bool = False
     use_black_litterman: bool = False
     market_views: Optional[List[Dict]] = None

@@ -53,6 +53,21 @@ def filter_universe(universe_df: pd.DataFrame, profile: RefinedProfile) -> pd.Da
     if profile.risk_profile == RiskProfile.PRUDENT:
         df = df[df["volatility"] < 0.25]
 
+    # 5. Sector preferences: restrict to specific sectors if requested
+    # Note: We always keep 'Obligations' and 'Multi-secteur' for basic diversification
+    # even if not explicitly chosen, to avoid concentrated/risky portfolios.
+    sector_prefs = getattr(profile.raw_profile.raw_responses, 'sector_preferences', None)
+    if sector_prefs:
+        # Filter for chosen sectors + infrastructure/diversification assets
+        mask = df["sector"].isin(sector_prefs) | df["sector"].isin(["Obligations", "Multi-secteur"])
+        sector_df = df[mask]
+        
+        # Only apply if we still have a reasonable number of assets
+        if len(sector_df) >= 10:
+            df = sector_df
+        else:
+            print(f"  ⚠️ Not enough assets in selected sectors {sector_prefs}. Falling back to full universe.")
+
     return df
 
 

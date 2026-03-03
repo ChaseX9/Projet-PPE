@@ -32,6 +32,7 @@ class RecommendationRequest(BaseModel):
     investment_amount: Union[float, InvestmentAmount] = InvestmentAmount.FROM_100_TO_500
     investment_mode: InvestmentMode = InvestmentMode.ONE_TIME
     esg_preference: bool = False
+    sector_preferences: Optional[List[str]] = None
     liquidity_need: bool = False
     use_black_litterman: bool = False
     market_views: Optional[List[MarketView]] = None
