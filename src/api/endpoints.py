@@ -52,7 +52,11 @@ async def get_recommendation(
         # 2. Logic execution
         raw = build_raw_profile(questionnaire)
         refined = refine_profile(raw)
-        portfolio = build_portfolio(refined, force_update_universe=request.force_universe_update)
+        portfolio = build_portfolio(
+            refined,
+            force_update_universe=request.force_universe_update,
+            excluded_tickers=request.excluded_tickers or []
+        )
         
         # 3. Persistence if authenticated and verified
         profile_id = None
@@ -76,14 +80,16 @@ async def get_recommendation(
                 saved_portfolio = SavedPortfolio(
                     user_id=current_user.id,
                     profile_id=saved_profile.id,
-                    status="proposed",  # Explicitly set status
+                    status="adjusted" if request.excluded_tickers else "proposed",
+                    parent_portfolio_id=request.parent_portfolio_id,
                     positions=portfolio['positions'],
                     category_allocations=portfolio['category_allocations'],
                     expected_return=portfolio['expected_return'],
                     volatility=portfolio['volatility'],
                     sharpe_ratio=portfolio['sharpe_ratio'],
                     optimization_method=portfolio['optimization_method'],
-                    total_positions=portfolio['total_positions']
+                    total_positions=portfolio['total_positions'],
+                    excluded_tickers=request.excluded_tickers or None
                 )
                 db.add(saved_portfolio)
                 db.commit()

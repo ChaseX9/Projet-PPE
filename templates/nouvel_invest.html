@@ -1108,6 +1108,8 @@
 
         let currentPortfolioId = null;
         let lastFormData = null; // Cache form data for regeneration
+        let excludedTickers = []; // Tickers excluded by user preference
+        const MAX_EXCLUSIONS = 3;
 
         async function handleRecommendation(e) {
             e.preventDefault();
@@ -1293,10 +1295,39 @@
             document.getElementById('perf-sharpe').textContent = sharpe;
 
             // Positions with explanations
-
-            // Positions with explanations
             const list = document.getElementById('position-list');
             list.innerHTML = '';
+
+            // --- Exclusion banner ---
+            const existingBanner = document.getElementById('exclusion-banner');
+            if (existingBanner) existingBanner.remove();
+
+            if (excludedTickers.length > 0) {
+                const banner = document.createElement('div');
+                banner.id = 'exclusion-banner';
+                banner.style.cssText = 'background: rgba(74,144,164,0.1); border: 1px solid rgba(74,144,164,0.3); border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: var(--text-main); display: flex; align-items: center; gap: 0.75rem;';
+                banner.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span>Actifs exclus à votre demande : <strong>${excludedTickers.join(', ')}</strong>. Le portefeuille a été recalculé en respectant votre profil de risque.</span>
+                `;
+                list.before(banner);
+            }
+
+            // --- Limit banner ---
+            const existingLimit = document.getElementById('exclusion-limit-banner');
+            if (existingLimit) existingLimit.remove();
+
+            if (excludedTickers.length >= MAX_EXCLUSIONS) {
+                const limitBanner = document.createElement('div');
+                limitBanner.id = 'exclusion-limit-banner';
+                limitBanner.style.cssText = 'background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.35); border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1rem; font-size: 0.88rem; color: var(--text-main); display: flex; align-items: center; gap: 0.75rem;';
+                limitBanner.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Vous avez atteint le nombre maximal de modifications (${MAX_EXCLUSIONS}). Pour repartir sur une base saine, <a href="#" onclick="resetAndRegenerate(event)" style="color:var(--primary);font-weight:600;">relancez une nouvelle simulation</a>.</span>
+                `;
+                list.before(limitBanner);
+            }
+
             res.portfolio.positions.sort((a, b) => b.weight - a.weight).forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'asset-card';
@@ -1315,6 +1346,19 @@
                     `;
                 }
 
+                // Exclude button (only if under limit)
+                const excludeBtn = excludedTickers.length < MAX_EXCLUSIONS ? `
+                    <button onclick="excludeAsset('${p.ticker}')" style="
+                        margin-top: 0.85rem; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+                        background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px;
+                        color: #ef4444; font-size: 0.8rem; font-weight: 600; padding: 0.5rem; cursor: pointer;
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='rgba(239,68,68,0.16)'" onmouseout="this.style.background='rgba(239,68,68,0.08)'">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                        Retirer cet actif
+                    </button>
+                ` : '';
+
                 card.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
                         <span class="badge badge-${p.asset_type.toLowerCase()}">${p.asset_type}</span>
@@ -1324,6 +1368,7 @@
                     <div style="font-size: 0.85rem; color: var(--text-muted); height: 2.5rem; overflow: hidden;">${p.name}</div>
                     <div class="asset-weight" style="margin-top: 1rem;">${(p.weight * 100).toFixed(2)}%</div>
                     ${explanationHtml}
+                    ${excludeBtn}
                 `;
                 list.appendChild(card);
             });
@@ -1336,6 +1381,47 @@
 
             // Show decision buttons
             document.getElementById('decision-card').style.display = 'block';
+        }
+
+        async function excludeAsset(ticker) {
+            if (excludedTickers.includes(ticker)) return;
+            if (excludedTickers.length >= MAX_EXCLUSIONS) {
+                UI.toast(`Vous avez atteint la limite de ${MAX_EXCLUSIONS} exclusions`, 'warning');
+                return;
+            }
+
+            excludedTickers.push(ticker);
+            UI.toast(`"${ticker}" exclu — recalcul du portefeuille...`, 'info');
+
+            const btn = document.getElementById('submit-btn');
+            if (btn) btn.disabled = true;
+
+            try {
+                const payload = {
+                    ...lastFormData,
+                    excluded_tickers: [...excludedTickers],
+                    parent_portfolio_id: currentPortfolioId
+                };
+                const res = await api.post('/api/recommandation', payload);
+                displayResult(res);
+                UI.toast('Nouvelle proposition générée sans ' + ticker, 'success');
+            } catch (err) {
+                // Rollback exclusion on error
+                excludedTickers.pop();
+                UI.alert(err.message || 'Impossible de recalculer le portefeuille', 'Portefeuille insuffisant', 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function resetAndRegenerate(e) {
+            e.preventDefault();
+            excludedTickers = [];
+            if (lastFormData) {
+                api.post('/api/recommandation', lastFormData)
+                    .then(res => { displayResult(res); UI.toast('Simulation réinitialisée', 'success'); })
+                    .catch(err => UI.alert(err.message, 'Erreur', 'error'));
+            }
         }
 
         async function acceptPortfolio() {

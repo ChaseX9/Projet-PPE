@@ -72,6 +72,7 @@ class SavedPortfolio(Base):
     sharpe_ratio = Column(Float)
     optimization_method = Column(String)
     total_positions = Column(Integer)
+    excluded_tickers = Column(JSON, nullable=True)  # Tickers excluded by user preference
     
     created_at = Column(DateTime, default=datetime.utcnow)
 

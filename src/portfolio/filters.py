@@ -17,10 +17,15 @@ from ..utils.config import (
     REFERENCE_ASSETS,
     MAX_ASSETS_PER_SECTOR,
     MIN_SECTORS_IN_PORTFOLIO,
+    MIN_ASSETS,
 )
 
 
-def filter_universe(universe_df: pd.DataFrame, profile: RefinedProfile) -> pd.DataFrame:
+def filter_universe(
+    universe_df: pd.DataFrame,
+    profile: RefinedProfile,
+    excluded_tickers: Optional[List[str]] = None,
+) -> pd.DataFrame:
     """
     Apply eligibility filters to the universe based on user profile and general rules.
     1. Liquidity (MiFID II requirement)
@@ -29,6 +34,16 @@ def filter_universe(universe_df: pd.DataFrame, profile: RefinedProfile) -> pd.Da
     4. Volatility constraints (Prudent profile)
     """
     df = universe_df.copy()
+
+    # 0. User exclusions (MiFID II: negative preference)
+    if excluded_tickers:
+        df = df[~df["ticker"].isin(excluded_tickers)]
+        if len(df) < max(MIN_ASSETS, 5):  # safety guard
+            from fastapi import HTTPException
+            raise HTTPException(
+                status_code=422,
+                detail="Nous ne pouvons plus vous proposer un portefeuille diversifié après avoir retiré cet actif. Essayez de retirer moins d’actifs ou de relancer une nouvelle simulation."
+            )
 
     # Ensure sector column exists (backwards compat)
     if "sector" not in df.columns:

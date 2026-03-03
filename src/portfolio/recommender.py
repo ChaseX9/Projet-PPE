@@ -15,11 +15,11 @@ from ..utils.config import (
     MAX_WEIGHT_DYNAMIQUE
 )
 
-def build_portfolio(profile: RefinedProfile, force_update_universe: bool = False) -> Dict:
+def build_portfolio(profile: RefinedProfile, force_update_universe: bool = False, excluded_tickers: Optional[List[str]] = None) -> Dict:
     """
     Complete workflow to build a recommended portfolio.
     1. Load/Update universe
-    2. Filter assets
+    2. Filter assets (with optional user exclusions)
     3. Determine allocation targets
     4. Optimize within categories
     5. Aggregate and final formatting
@@ -27,8 +27,8 @@ def build_portfolio(profile: RefinedProfile, force_update_universe: bool = False
     # 1. Data
     universe = load_or_update_universe(max_age_days=0 if force_update_universe else 7)
     
-    # 2. Filtering
-    eligible_assets = filter_universe(universe, profile)
+    # 2. Filtering (with exclusions)
+    eligible_assets = filter_universe(universe, profile, excluded_tickers=excluded_tickers)
     
     # 3. Dynamic Max Weight determination based on Risk Profile
     # This allows for natural differentiation and avoids the equal-weight problem

@@ -37,6 +37,8 @@ class RecommendationRequest(BaseModel):
     use_black_litterman: bool = False
     market_views: Optional[List[MarketView]] = None
     force_universe_update: bool = False
+    excluded_tickers: Optional[List[str]] = None
+    parent_portfolio_id: Optional[int] = None  # For tracking adjusted portfolios
 
 class PortfolioPosition(BaseModel):
     """Single position in the portfolio."""
