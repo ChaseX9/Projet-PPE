@@ -121,8 +121,14 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
 @router.post("/login", response_model=TokenResponse)
 def login(credentials: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == credentials.email).first()
-    if not user or not verify_password(credentials.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Aucun compte associé à cet email. Veuillez vous inscrire."
+        )
+    
+    if not verify_password(credentials.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Mot de passe incorrect")
     
     if not user.is_active:
         raise HTTPException(
@@ -170,27 +176,31 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
     
-    # Security: Always return success message even if email doesn't exist
-    if user:
-        # Invalidate old reset tokens
-        db.query(AuthToken).filter(
-            AuthToken.user_id == user.id,
-            AuthToken.type == "reset"
-        ).delete()
-        
-        # Generate new reset token
-        token_str = uuid4().hex
-        reset_token = AuthToken(
-            user_id=user.id,
-            token=token_str,
-            type="reset",
-            expires_at=datetime.utcnow() + timedelta(hours=1)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aucun compte n'est associé à cet email. Veuillez vous inscrire d'abord."
         )
-        db.add(reset_token)
-        db.commit()
-        
-        # Send email
-        send_reset_password_email(user.email, token_str)
+
+    # Invalidate old reset tokens
+    db.query(AuthToken).filter(
+        AuthToken.user_id == user.id,
+        AuthToken.type == "reset"
+    ).delete()
+    
+    # Generate new reset token
+    token_str = uuid4().hex
+    reset_token = AuthToken(
+        user_id=user.id,
+        token=token_str,
+        type="reset",
+        expires_at=datetime.utcnow() + timedelta(hours=1)
+    )
+    db.add(reset_token)
+    db.commit()
+    
+    # Send email
+    send_reset_password_email(user.email, token_str)
     
     return MessageResponse(message="Si cet email existe, un lien de réinitialisation a été envoyé.")
 
