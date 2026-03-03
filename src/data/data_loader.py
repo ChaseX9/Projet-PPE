@@ -530,8 +530,28 @@ def load_or_update_universe(max_age_days: int = 2) -> pd.DataFrame:
         
     print("Universe missing or outdated. Fetching fresh data from Yahoo Finance...")
     
-    etf_df = fetch_universe_batch(DEFAULT_ETF_TICKERS, AssetType.ETF)
-    stock_df = fetch_universe_batch(DEFAULT_STOCK_TICKERS, AssetType.STOCK)
+    # 1. Start with hardcoded defaults
+    final_tickers_etf = set(DEFAULT_ETF_TICKERS)
+    final_tickers_stock = set(DEFAULT_STOCK_TICKERS)
+    
+    # 2. Add existing tickers from CSV to avoid de-merging
+    existing_df = load_universe_from_csv(UNIVERSE_FILE)
+    if existing_df is not None and not existing_df.empty:
+        print(f"  🔍 Found {len(existing_df)} existing tickers in {UNIVERSE_FILE.name}")
+        for _, row in existing_df.iterrows():
+            t = row['ticker']
+            # Determine asset type based on the existing record or simple heuristic
+            atype = row.get('asset_type', AssetType.STOCK)
+            if atype == AssetType.ETF:
+                final_tickers_etf.add(t)
+            else:
+                final_tickers_stock.add(t)
+                
+    print(f"  🚀 Total to refresh: {len(final_tickers_etf)} ETFs, {len(final_tickers_stock)} Stocks")
+
+    # 3. Fetch fresh data for the COMBINED set
+    etf_df = fetch_universe_batch(list(final_tickers_etf), AssetType.ETF)
+    stock_df = fetch_universe_batch(list(final_tickers_stock), AssetType.STOCK)
     
     full_df = pd.concat([etf_df, stock_df], ignore_index=True)
     
