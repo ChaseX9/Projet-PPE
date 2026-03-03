@@ -1433,11 +1433,11 @@
         function resetAndRegenerate(e) {
             e.preventDefault();
             excludedTickers = [];
-            if (lastFormData) {
-                api.post('/api/recommandation', lastFormData)
-                    .then(res => { displayResult(res); UI.toast('Simulation réinitialisée', 'success'); })
-                    .catch(err => UI.alert(err.message, 'Erreur', 'error'));
-            }
+            // Go back to the questionnaire so the user starts fresh
+            document.getElementById('result-step').classList.remove('active');
+            document.getElementById('questionnaire-step').classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            UI.toast('Exclusions réinitialisées — remplissez le formulaire à nouveau', 'info');
         }
 
         async function acceptPortfolio() {
