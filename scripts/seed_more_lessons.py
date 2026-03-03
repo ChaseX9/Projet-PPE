@@ -425,7 +425,7 @@ La plupart des courtiers permettent de programmer des achats automatiques mensue
 **Qu'est-ce qu'un ETF thématique ?**
 
 Un ETF thématique investit dans un thème d'investissement spécifique :
-- Intelligence artificielle et robotique
+- Robotique et Automisation
 - Énergies renouvelables et transition énergétique
 - Cybersécurité
 - Biotechnologie et génomique
@@ -454,7 +454,7 @@ ETF Énergies renouvelables (iShares Global Clean Energy) :
 - 2020 : +140% (euphorie verte)
 - 2021-2023 : -60% (hausse des taux, problèmes de chaîne d'approvisionnement)
 
-ETF Intelligence Artificielle :
+ETF Secteur Technologique :
 - 2023 : +50% (boom ChatGPT)
 - Valorisations très élevées, risque de correction
 
@@ -497,7 +497,7 @@ Une catégorie intermédiaire entre ETF passifs et actifs :
                     "type": "multiple_choice",
                     "prompt": "Qu'est-ce qu'un ETF 'Smart Beta' ou factoriel ?",
                     "choices": [
-                        "Un ETF géré par une intelligence artificielle",
+                        "Un ETF géré par un algorithme propriétaire",
                         "Un ETF qui cible des facteurs spécifiques comme la valeur ou le momentum",
                         "Un ETF avec un rendement garanti",
                         "Un ETF réservé aux investisseurs professionnels"

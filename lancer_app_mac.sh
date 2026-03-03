@@ -20,8 +20,8 @@ export PYTHONPATH=$PYTHONPATH:.
 
 # --- Configuration Email (SMTP) ---
 # Remplacez par vos identifiants réels (ou utilisez un fichier .env)
-export SMTP_USER="votre-email@gmail.com"
-export SMTP_PASSWORD="votre-mot-de-passe-application"
+export SMTP_USER="capinvest.noreply@gmail.com"
+export SMTP_PASSWORD="rkiuilntphwkcece"
 export BASE_URL="http://127.0.0.1:8000"
 # ----------------------------------
 

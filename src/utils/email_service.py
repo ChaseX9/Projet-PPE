@@ -23,7 +23,7 @@ def send_verification_email(to_email: str, token: str, full_name: str):
             <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                 <div style="text-align: center; margin-bottom: 30px;">
                     <h1 style="color: #4A90A4; margin: 0;">CapInvest</h1>
-                    <p style="color: #64748b; font-size: 0.9rem;">Intelligence Artificielle au service de votre patrimoine</p>
+                    <p style="color: #64748b; font-size: 0.9rem;">Algorithmes avancés au service de votre patrimoine</p>
                 </div>
                 
                 <h2 style="color: #1a1714;">Bienvenue {full_name} !</h2>
