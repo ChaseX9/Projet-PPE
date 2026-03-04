@@ -1135,6 +1135,7 @@
         let currentPortfolioId = null;
         let lastFormData = null; // Cache form data for regeneration
         let excludedTickers = []; // Tickers excluded by user preference
+        let exclusionReplacements = {}; // Map of excludedTicker -> replacementTicker
         const MAX_EXCLUSIONS = 3;
 
         async function handleRecommendation(e) {
@@ -1332,9 +1333,15 @@
                 const banner = document.createElement('div');
                 banner.id = 'exclusion-banner';
                 banner.style.cssText = 'background: rgba(74,144,164,0.1); border: 1px solid rgba(74,144,164,0.3); border-radius: 10px; padding: 0.85rem 1.25rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: var(--text-main); display: flex; align-items: center; gap: 0.75rem;';
+
+                const exclusionListHtml = excludedTickers.map(t => {
+                    const replacement = exclusionReplacements[t];
+                    return replacement ? `<strong>${t}</strong> (remplacé par <strong>${replacement}</strong>)` : `<strong>${t}</strong>`;
+                }).join(', ');
+
                 banner.innerHTML = `
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <span>Actifs exclus à votre demande : <strong>${excludedTickers.join(', ')}</strong>. Le portefeuille a été recalculé en respectant votre profil de risque.</span>
+                    <span>Actifs exclus à votre demande : ${exclusionListHtml}. Le portefeuille a été recalculé.</span>
                 `;
                 list.before(banner);
             }
@@ -1427,6 +1434,11 @@
                 return;
             }
 
+            // Capture current tickers to identify replacement later
+            // We use the DOM or the last result. Let's use the DOM list for simplicity/safety.
+            const currentTickers = Array.from(document.querySelectorAll('.asset-card div[style*="font-weight: 700"]'))
+                .map(el => el.textContent.trim());
+
             excludedTickers.push(ticker);
             UI.toast(`"${ticker}" exclu — recalcul du portefeuille...`, 'info');
 
@@ -1440,8 +1452,16 @@
                     parent_portfolio_id: currentPortfolioId
                 };
                 const res = await api.post('/api/recommandation', payload);
+
+                // Identify replacement: Ticker in new result that wasn't in currentTickers
+                const newTickers = res.portfolio.positions.map(p => p.ticker);
+                const replacement = newTickers.find(t => !currentTickers.includes(t));
+                if (replacement) {
+                    exclusionReplacements[ticker] = replacement;
+                }
+
                 displayResult(res);
-                UI.toast('Nouvelle proposition générée sans ' + ticker, 'success');
+                UI.toast('Nouvelle proposition générée', 'success');
             } catch (err) {
                 // Rollback exclusion on error
                 excludedTickers.pop();
@@ -1454,6 +1474,7 @@
         function resetAndRegenerate(e) {
             e.preventDefault();
             excludedTickers = [];
+            exclusionReplacements = {};
             // Go back to the questionnaire so the user starts fresh
             document.getElementById('result-step').classList.remove('active');
             document.getElementById('questionnaire-step').classList.add('active');
