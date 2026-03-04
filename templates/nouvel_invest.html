@@ -218,22 +218,22 @@
 
         .exclude-asset-btn {
             position: absolute;
-            top: -12px;
-            left: -12px;
-            width: 24px;
-            height: 24px;
+            top: -8px;
+            left: -8px;
+            width: 22px;
+            height: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #ef4444;
-            border: 2px solid var(--bg-body);
+            border: 2px solid #fff;
             border-radius: 50%;
             color: white;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 30;
+            z-index: 50;
             padding: 0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
         }
 
         .exclude-asset-btn:hover {
@@ -1357,6 +1357,7 @@
             res.portfolio.positions.sort((a, b) => b.weight - a.weight).forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'asset-card';
+                card.style.position = 'relative'; // Ensure button is relative to card
 
                 let explanationHtml = '';
                 if (p.explanation) {
@@ -1375,12 +1376,14 @@
                 // Exclude icon (only if under limit)
                 const excludeIcon = excludedTickers.length < MAX_EXCLUSIONS ? `
                     <button data-exclude-ticker="${p.ticker}" class="exclude-asset-btn" title="Retirer cet actif">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 ` : '';
 
+                const headerMargin = excludeIcon ? 'margin-left: 1rem;' : '';
+
                 card.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; ${headerMargin}">
                         <span class="badge badge-${p.asset_type.toLowerCase()}">${p.asset_type}</span>
                         ${p.asset_class === 'ESG' ? '<span class="badge badge-esg">ESG <span class="help-icon" data-tooltip="Cet actif respecte des critères Environnementaux, Sociaux et de Gouvernance."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></span></span>' : ''}
                     </div>
