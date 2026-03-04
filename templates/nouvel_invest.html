@@ -218,28 +218,28 @@
 
         .exclude-asset-btn {
             position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            width: 26px;
-            height: 26px;
+            top: -12px;
+            left: -12px;
+            width: 24px;
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            background: #ef4444;
+            border: 2px solid var(--bg-body);
             border-radius: 50%;
-            color: #ef4444;
+            color: white;
             cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 10;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 30;
             padding: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .exclude-asset-btn:hover {
-            background: #ef4444 !important;
-            color: white !important;
-            border-color: #ef4444 !important;
-            transform: scale(1.1);
+            background: #dc2626 !important;
+            transform: scale(1.15) rotate(90deg);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
         }
     </style>
 </head>
@@ -1393,15 +1393,6 @@
                 list.appendChild(card);
             });
 
-            // Delegated listener for "Retirer" buttons (avoids innerHTML quote issues)
-            list.addEventListener('click', function (e) {
-                const btn = e.target.closest('.exclude-asset-btn');
-                if (btn) {
-                    const ticker = btn.dataset.excludeTicker;
-                    if (ticker) excludeAsset(ticker);
-                }
-            });
-
             // Portfolio explanation
             if (res.portfolio.portfolio_explanation) {
                 document.getElementById('explanation-card').style.display = 'block';
@@ -1411,6 +1402,20 @@
             // Show decision buttons
             document.getElementById('decision-card').style.display = 'block';
         }
+
+        // --- GLOBAL INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const list = document.getElementById('position-list');
+            if (list) {
+                list.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.exclude-asset-btn');
+                    if (btn) {
+                        const ticker = btn.dataset.excludeTicker;
+                        if (ticker) excludeAsset(ticker);
+                    }
+                });
+            }
+        });
 
         async function excludeAsset(ticker) {
             if (excludedTickers.includes(ticker)) return;
@@ -1450,7 +1455,9 @@
             document.getElementById('result-step').classList.remove('active');
             document.getElementById('questionnaire-step').classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
-            UI.toast('Exclusions réinitialisées — remplissez le formulaire à nouveau', 'info');
+            // Restore smart suggestions
+            if (typeof displayFieldSuggestions === 'function') displayFieldSuggestions();
+            UI.toast('Exclusions réinitialisées — vérifiez vos réponses', 'info');
         }
 
         async function acceptPortfolio() {
