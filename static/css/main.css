@@ -522,6 +522,7 @@ tr.row-hover:hover {
 }
 
 .asset-card {
+    position: relative;
     border: 1px solid var(--border);
     padding: 1.15rem;
     border-radius: var(--radius-md);
