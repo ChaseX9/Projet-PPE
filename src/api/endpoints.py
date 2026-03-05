@@ -10,7 +10,7 @@ from .models import (
 )
 from ..profile.schemas import QuestionnaireInput
 from ..profile.profile_builder import build_raw_profile
-from ..profile.ml_profile import refine_profile
+from ..profile.profile_engine import refine_profile
 from ..portfolio.recommender import build_portfolio
 from ..database.database import get_db
 from ..database.models import User, SavedProfile, SavedPortfolio

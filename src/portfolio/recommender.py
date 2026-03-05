@@ -153,7 +153,7 @@ def simplify_portfolio(weights: Dict[str, float], profile: RefinedProfile) -> Di
     3. Renormalize remaining weights (no artificial equal-weight).
     """
     # 1. Determine limit based on investment amount and risk profile
-    from ..profile.ml_profile import normalize_investment_amount
+    from ..profile.profile_engine import normalize_investment_amount
     from ..profile.schemas import InvestmentAmount
     
     amount = profile.raw_profile.raw_responses.investment_amount

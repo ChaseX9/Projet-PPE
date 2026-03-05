@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from src.profile.schemas import QuestionnaireInput, InvestmentGoal, Horizon, RiskTolerance, LossCapacity, KnowledgeLevel, Experience
 from src.profile.profile_builder import build_raw_profile
-from src.profile.ml_profile import refine_profile
+from src.profile.profile_engine import refine_profile
 from src.portfolio.recommender import build_portfolio
 
 def test_engine_selection():

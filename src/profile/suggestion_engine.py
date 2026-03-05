@@ -56,7 +56,7 @@ def _matches_condition(condition: Dict[str, Any], responses: Dict[str, Any]) -> 
     Returns:
         True if all conditions are met
     """
-    from .ml_profile import normalize_investment_amount
+    from .profile_engine import normalize_investment_amount
     
     for field, expected_value in condition.items():
         actual_value = responses.get(field)
