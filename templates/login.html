@@ -182,116 +182,140 @@
         </div>
 
         <div class="card" id="register-card" style="display: none;">
-            <h2>Inscription</h2>
-            <p style="color: var(--text-muted); margin-bottom: 2rem;">Créez votre compte </p>
+            <div id="register-form-container">
+                <h2>Inscription</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Créez votre compte </p>
 
-            <div id="register-error-container"
-                style="display: none; padding: 0.75rem; background-color: #fee2e2; border-radius: 8px; color: #b91c1c; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                <div id="register-error-container"
+                    style="display: none; padding: 0.75rem; background-color: #fee2e2; border-radius: 8px; color: #b91c1c; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                </div>
+
+                <form onsubmit="handleRegister(event)" novalidate>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="reg-last-name">Nom</label>
+                            <input type="text" id="reg-last-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-first-name">Prénom</label>
+                            <input type="text" id="reg-first-name" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Mot de passe <small
+                                style="font-weight: normal; color: var(--text-muted); margin-left: 0.5rem;">(Minimum 8
+                                caractères)</small></label>
+                        <div style="position: relative;">
+                            <input type="password" id="reg-password" required style="padding-right: 2.75rem;"
+                                oninput="validatePassword(this.value)">
+                            <button type="button" onclick="togglePassword('reg-password', this)"
+                                style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; color: var(--text-muted); transition: color 0.2s;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle class="eye-open" cx="12" cy="12" r="3"></circle>
+                                    <path class="eye-closed"
+                                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                                        style="display: none;"></path>
+                                    <line class="eye-closed" x1="1" y1="1" x2="23" y2="23" style="display: none;">
+                                    </line>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="password-requirements">
+                            <div id="req-length" class="requirement">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Minimum 8 caractères
+                            </div>
+                            <div id="req-uppercase" class="requirement">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Une majuscule
+                            </div>
+                            <div id="req-special" class="requirement">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                                    stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Un caractère spécial
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-confirm-password">Confirmer le mot de passe</label>
+                        <div style="position: relative;">
+                            <input type="password" id="reg-confirm-password" required style="padding-right: 2.75rem;">
+                            <button type="button" onclick="togglePassword('reg-confirm-password', this)"
+                                style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; color: var(--text-muted); transition: color 0.2s;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle class="eye-open" cx="12" cy="12" r="3"></circle>
+                                    <path class="eye-closed"
+                                        d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                                        style="display: none;"></path>
+                                    <line class="eye-closed" x1="1" y1="1" x2="23" y2="23" style="display: none;">
+                                    </line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Privacy Policy Acceptance -->
+                    <div class="form-group"
+                        style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                        <label
+                            style="display: flex; align-items: start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
+                            <input type="checkbox" id="privacy-acceptance" required
+                                style="margin-top: 0.25rem; width: auto; flex-shrink: 0;">
+                            <span style="font-size: 0.9rem; line-height: 1.5;">
+                                J'accepte la <a href="/politique_confidentialite.html" target="_blank"
+                                    style="color: var(--primary); text-decoration: underline;">Politique de
+                                    Confidentialité</a> et consens au traitement de mes données personnelles
+                                conformément au
+                                RGPD. <span style="color: #ff4d4f;">*</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <span>S'inscrire</span>
+                        <span class="loading-spinner" id="reg-spinner"></span>
+                    </button>
+                </form>
+
+                <p class="toggle-auth">
+                    Déjà un compte ? <a href="#" onclick="toggleAuth(event)">Se connecter</a>
+                </p>
             </div>
 
-            <form onsubmit="handleRegister(event)" novalidate>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label for="reg-last-name">Nom</label>
-                        <input type="text" id="reg-last-name" required>
+            <!-- Success Container (initially hidden) -->
+            <div id="register-success-container" style="display: none;">
+                <div style="text-align: center; padding: 2rem;">
+                    <div
+                        style="background: rgba(74, 144, 164, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
                     </div>
-                    <div class="form-group">
-                        <label for="reg-first-name">Prénom</label>
-                        <input type="text" id="reg-first-name" required>
-                    </div>
+                    <h2 style="margin-bottom: 1rem; color: var(--primary);">Compte créé !</h2>
+                    <p id="register-success-message"
+                        style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;"></p>
+                    <button onclick="showLogin()" class="btn btn-primary" style="width: 100%;">Retour à la
+                        connexion</button>
                 </div>
-                <div class="form-group">
-                    <label for="reg-email">Email</label>
-                    <input type="email" id="reg-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="reg-password">Mot de passe <small
-                            style="font-weight: normal; color: var(--text-muted); margin-left: 0.5rem;">(Minimum 8
-                            caractères)</small></label>
-                    <div style="position: relative;">
-                        <input type="password" id="reg-password" required style="padding-right: 2.75rem;"
-                            oninput="validatePassword(this.value)">
-                        <button type="button" onclick="togglePassword('reg-password', this)"
-                            style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; color: var(--text-muted); transition: color 0.2s;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle class="eye-open" cx="12" cy="12" r="3"></circle>
-                                <path class="eye-closed"
-                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                                    style="display: none;"></path>
-                                <line class="eye-closed" x1="1" y1="1" x2="23" y2="23" style="display: none;"></line>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="password-requirements">
-                        <div id="req-length" class="requirement">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Minimum 8 caractères
-                        </div>
-                        <div id="req-uppercase" class="requirement">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Une majuscule
-                        </div>
-                        <div id="req-special" class="requirement">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                            Un caractère spécial
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="reg-confirm-password">Confirmer le mot de passe</label>
-                    <div style="position: relative;">
-                        <input type="password" id="reg-confirm-password" required style="padding-right: 2.75rem;">
-                        <button type="button" onclick="togglePassword('reg-confirm-password', this)"
-                            style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; color: var(--text-muted); transition: color 0.2s;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path class="eye-open" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle class="eye-open" cx="12" cy="12" r="3"></circle>
-                                <path class="eye-closed"
-                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                                    style="display: none;"></path>
-                                <line class="eye-closed" x1="1" y1="1" x2="23" y2="23" style="display: none;"></line>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Privacy Policy Acceptance -->
-                <div class="form-group"
-                    style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
-                    <label
-                        style="display: flex; align-items: start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
-                        <input type="checkbox" id="privacy-acceptance" required
-                            style="margin-top: 0.25rem; width: auto; flex-shrink: 0;">
-                        <span style="font-size: 0.9rem; line-height: 1.5;">
-                            J'accepte la <a href="/politique_confidentialite.html" target="_blank"
-                                style="color: var(--primary); text-decoration: underline;">Politique de
-                                Confidentialité</a> et consens au traitement de mes données personnelles conformément au
-                            RGPD. <span style="color: #ff4d4f;">*</span>
-                        </span>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <span>S'inscrire</span>
-                    <span class="loading-spinner" id="reg-spinner"></span>
-                </button>
-            </form>
-
-            <p class="toggle-auth">
-                Déjà un compte ? <a href="#" onclick="toggleAuth(event)">Se connecter</a>
-            </p>
+            </div>
         </div>
     </div>
 
@@ -325,6 +349,11 @@
             document.getElementById('login-card').style.display = 'block';
             document.getElementById('register-card').style.display = 'none';
             document.getElementById('forgot-card').style.display = 'none';
+
+            // Reset register state to form
+            document.getElementById('register-form-container').style.display = 'block';
+            document.getElementById('register-success-container').style.display = 'none';
+
             // Clear errors
             document.getElementById('login-error-container').style.display = 'none';
             document.getElementById('register-error-container').style.display = 'none';
@@ -357,6 +386,10 @@
                 login.style.display = 'none';
                 register.style.display = 'block';
                 document.getElementById('forgot-card').style.display = 'none';
+
+                // Ensure register form is shown, not success message
+                document.getElementById('register-form-container').style.display = 'block';
+                document.getElementById('register-success-container').style.display = 'none';
             }
         }
 
@@ -422,19 +455,10 @@
                 });
 
                 // Show success message and hide form content
-                document.getElementById('register-card').innerHTML = `
-                    <div style="text-align: center; padding: 2rem;">
-                        <div style="background: rgba(74, 144, 164, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                        </div>
-                        <h2 style="margin-bottom: 1rem; color: var(--primary);">Compte créé !</h2>
-                        <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 2rem;">${response.message}</p>
-                        <button onclick="showLogin()" class="btn btn-primary" style="width: 100%;">Retour à la connexion</button>
-                    </div>
-                `;
+                document.getElementById('register-form-container').style.display = 'none';
+                document.getElementById('register-success-container').style.display = 'block';
+                document.getElementById('register-success-message').textContent = response.message;
+
                 UI.toast('Compte créé avec succès !', 'success');
             } catch (err) {
                 errorBox.textContent = err.message;
