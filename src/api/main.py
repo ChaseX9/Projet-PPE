@@ -39,7 +39,7 @@ app.include_router(gdpr_router)
 @app.on_event("startup")
 async def startup_event():
     from ..database.database import init_db, SessionLocal
-    from ..database.seeding import auto_seed_if_empty
+    from ..database.seeding import auto_seed_or_update
     from ..data.data_loader import load_or_update_universe
     
     try:
@@ -48,7 +48,7 @@ async def startup_event():
         
         db = SessionLocal()
         try:
-            auto_seed_if_empty(db)
+            auto_seed_or_update(db)
         finally:
             db.close()
             

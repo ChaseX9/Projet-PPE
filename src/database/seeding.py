@@ -2,12 +2,9 @@
 from sqlalchemy.orm import Session
 from .models import Module, Lesson, Question
 
-def auto_seed_if_empty(db: Session):
-    """Seed the curriculum only if no modules exist."""
-    if db.query(Module).count() > 0:
-        return False
-        
-    print("🌱 Database empty. Seeding full curriculum...")
+def auto_seed_or_update(db: Session):
+    """Seed the curriculum or add missing modules."""
+    print("🌱 Checking Academy curriculum...")
     
     MODULES = [
         {
@@ -567,19 +564,97 @@ Les entreprises bien notées sur ces critères sont souvent plus résilientes su
                     ]
                 }
             ]
+        },
+        {
+            "title": "Analyse Sectorielle",
+            "description": "Apprenez à identifier les opportunités selon les cycles économiques",
+            "level": "intermediate",
+            "order": 13,
+            "icon": "🏢",
+            "lessons": [
+                {
+                    "title": "Secteurs Cycliques vs Défensifs",
+                    "content": """Tous les secteurs ne réagissent pas de la même manière à l'économie.
+                    
+**Les secteurs cycliques** (Luxe, Industrie, Auto) profitent de la croissance. Quand l'économie va bien, les gens achètent des voitures et des sacs à main.
+                    
+**Les secteurs défensifs** (Santé, Consommation de base, Utilities) sont plus stables. On a toujours besoin de se soigner et de manger, même en période de crise.""",
+                    "example": "LVMH (Luxe) est cyclique, tandis que Sanofi (Santé) est défensif.",
+                    "estimated_minutes": 10,
+                    "xp_reward": 20,
+                    "questions": [
+                        {
+                            "type": "multiple_choice",
+                            "prompt": "Lequel de ces secteurs est considéré comme défensif ?",
+                            "choices": ["Luxe", "Automobile", "Santé", "Aéronautique"],
+                            "correct_answer": "Santé",
+                            "explanation": "La santé est un besoin primaire qui reste stable quelle que soit la conjoncture économique."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Actifs Alternatifs",
+            "description": "Diversifier au-delà des actions et obligations",
+            "level": "intermediate",
+            "order": 14,
+            "icon": "🏠",
+            "lessons": [
+                {
+                    "title": "L'Or et l'Immobilier papier (SCPI)",
+                    "content": """L'or est la valeur refuge historique par excellence. En période de crise majeure ou d'hyperinflation, il conserve son pouvoir d'achat. Les SCPI permettent d'investir dans l'immobilier commercial ou résidentiel sans souci de gestion, en recevant des loyers réguliers.""",
+                    "example": "Acheter des parts de SCPI avec 5000€ pour recevoir des dividendes trimestriels issus de loyers de bureaux.",
+                    "estimated_minutes": 12,
+                    "xp_reward": 20,
+                    "questions": [
+                        {
+                            "type": "true_false",
+                            "prompt": "L'or génère des dividendes réguliers.",
+                            "choices": None,
+                            "correct_answer": "false",
+                            "explanation": "L'or ne produit rien. Son gain ne vient que de l'appréciation de son prix dans le temps."
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "title": "Gestion de Crise et Patience",
+            "description": "Apprendre à naviguer dans les marchés extrêmes",
+            "level": "intermediate",
+            "order": 15,
+            "icon": "🛡️",
+            "lessons": [
+                {
+                    "title": "Survivre aux Krachs boursiers",
+                    "content": """Un krach est une chute brutale (souvent -20% ou plus en quelques jours). Historiquement, les marchés ont toujours fini par dépasser leurs anciens sommets. La clé est de ne jamais vendre en panique ("Panic Sell") et de garder le cap sur son horizon long terme.""",
+                    "example": "Lors du krach de mars 2020 (Covid), le marché a perdu 30% en un mois avant de tout récupérer en moins d'un an.",
+                    "estimated_minutes": 15,
+                    "xp_reward": 25,
+                    "questions": [
+                        {
+                            "type": "multiple_choice",
+                            "prompt": "Quelle est la meilleure réaction lors d'un krach boursier ?",
+                            "choices": ["Tout vendre", "Garder ses positions et suivre son plan", "Vérifier son compte toutes les heures", "Emprunter pour tout miser"],
+                            "correct_answer": "Garder ses positions et suivre son plan",
+                            "explanation": "La patience est la vertu cardinale de l'investisseur. Vendre pendant un krach, c'est matérialiser une perte qui serait restée temporaire."
+                        }
+                    ]
+                }
+            ]
         }
     ]
 
     try:
-        # Check if modules already exist
-        existing_count = db.query(Module).count()
-        if existing_count > 0:
-            print(f"La base contient déjà {existing_count} modules. Pas de seeding nécessaire.")
-            return True
-
-        print(f"Seeding de {len(MODULES)} modules enrichis...")
-        
+        added_count = 0
         for mod_data in MODULES:
+            # Check if this module already exists by title
+            exists = db.query(Module).filter(Module.title == mod_data["title"]).first()
+            if exists:
+                continue
+
+            print(f"🆕 Adding new module: {mod_data['title']}")
             module = Module(
                 title=mod_data["title"],
                 description=mod_data["description"],
@@ -619,9 +694,13 @@ Les entreprises bien notées sur ces critères sont souvent plus résilientes su
                         order=q_idx
                     )
                     db.add(question)
+            added_count += 1
         
         db.commit()
-        print("✅ Seeding terminé avec succès !")
+        if added_count > 0:
+            print(f"✅ Seeding terminé : {added_count} nouveaux modules ajoutés.")
+        else:
+            print("✓ Academy déjà à jour.")
         return True
     except Exception as e:
         print(f"❌ Erreur lors du seeding : {e}")
