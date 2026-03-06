@@ -148,7 +148,7 @@
             </form>
 
             <p class="toggle-auth">
-                Pas de compte ? <a href="#" onclick="toggleAuth(event)">S'inscrire</a>
+                Pas de compte ? <a href="#" onclick="showCard('register-card'); event.preventDefault();">S'inscrire</a>
             </p>
         </div>
 
@@ -294,7 +294,8 @@
                 </form>
 
                 <p class="toggle-auth">
-                    Déjà un compte ? <a href="#" onclick="toggleAuth(event)">Se connecter</a>
+                    Déjà un compte ? <a href="#" onclick="showCard('login-card'); event.preventDefault();">Se
+                        connecter</a>
                 </p>
             </div>
 
