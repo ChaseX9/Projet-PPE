@@ -52,8 +52,9 @@ async def startup_event():
         finally:
             db.close()
             
-        load_or_update_universe(max_age_days=2)
-        print("✓ Universe ready")
+        import threading
+        threading.Thread(target=load_or_update_universe, kwargs={"max_age_days": 2}, daemon=True).start()
+        print("✓ Universe update started in background")
     except Exception as e:
         print(f"Warning during startup: {e}")
 
