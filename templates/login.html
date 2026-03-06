@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - CapInvest</title>
-    <link rel="stylesheet" href="/static/css/main.css?v=8">
+    <link rel="stylesheet" href="/static/css/main.css?v=9">
     <style>
         .auth-container {
             max-width: 400px;
@@ -319,8 +319,8 @@
         </div>
     </div>
 
-    <script src="/static/js/ui.js"></script>
-    <script src="/static/js/api.js"></script>
+    <script src="/static/js/ui.js?v=9"></script>
+    <script src="/static/js/api.js?v=9"></script>
     <script>
         if (api.isAuthenticated()) {
             window.location.href = '/espace_perso.html';
@@ -344,69 +344,51 @@
             }
         }
 
-        function showLogin(e) {
-            if (e) e.preventDefault();
-            document.getElementById('login-card').style.display = 'block';
-            document.getElementById('register-card').style.display = 'none';
-            document.getElementById('forgot-card').style.display = 'none';
+        function showCard(cardId) {
+            // Masquer toutes les cartes
+            ['login-card', 'register-card', 'forgot-card'].forEach(id => {
+                const card = document.getElementById(id);
+                if (card) card.style.display = 'none';
+            });
 
-            // Reset register state to form
-            document.getElementById('register-form-container').style.display = 'block';
-            document.getElementById('register-success-container').style.display = 'none';
+            // Afficher la carte demandée
+            const target = document.getElementById(cardId);
+            if (target) {
+                target.style.display = 'block';
+                console.log("Navigation active : " + cardId);
 
-            // Clear errors
-            document.getElementById('login-error-container').style.display = 'none';
-            document.getElementById('register-error-container').style.display = 'none';
-            document.getElementById('forgot-error-container').style.display = 'none';
-            document.getElementById('forgot-success-container').style.display = 'none';
+                // Réinitialiser les erreurs
+                ['login', 'register', 'forgot'].forEach(prefix => {
+                    const err = document.getElementById(prefix + '-error-container');
+                    if (err) err.style.display = 'none';
+                });
 
-            // Clear registration form fields
-            const regForm = document.querySelector('#register-card form');
-            if (regForm) regForm.reset();
+                // Réinitialiser les états spécifiques
+                if (cardId === 'register-card') {
+                    document.getElementById('register-form-container').style.display = 'block';
+                    document.getElementById('register-success-container').style.display = 'none';
+                    const regForm = document.querySelector('#register-card form');
+                    if (regForm) regForm.reset();
+                    document.querySelectorAll('.requirement').forEach(el => el.classList.remove('valid'));
+                }
 
-            // Reset password requirements indicators
-            document.querySelectorAll('.requirement').forEach(el => el.classList.remove('valid'));
-
-            console.log("Navigation: Login view restored, register form reset.");
+                if (cardId === 'forgot-card') {
+                    document.getElementById('forgot-success-container').style.display = 'none';
+                    const forgotForm = document.querySelector('#forgot-card form');
+                    if (forgotForm) forgotForm.reset();
+                }
+            }
         }
 
-        function showForgot(e) {
-            if (e) e.preventDefault();
-            document.getElementById('login-card').style.display = 'none';
-            document.getElementById('register-card').style.display = 'none';
-            document.getElementById('forgot-card').style.display = 'block';
-
-            document.getElementById('forgot-error-container').style.display = 'none';
-            document.getElementById('forgot-success-container').style.display = 'none';
-        }
-
+        // Fonctions d'aide pour les attributs onclick existants
+        function showLogin(e) { if (e) e.preventDefault(); showCard('login-card'); }
+        function showForgot(e) { if (e) e.preventDefault(); showCard('forgot-card'); }
         function toggleAuth(e) {
             if (e) e.preventDefault();
-            const login = document.getElementById('login-card');
-            const register = document.getElementById('register-card');
-
-            // Clear errors when switching
-            document.getElementById('login-error-container').style.display = 'none';
-            document.getElementById('register-error-container').style.display = 'none';
-
-            if (login.style.display === 'none') {
-                showLogin();
-            } else {
-                login.style.display = 'none';
-                register.style.display = 'block';
-                document.getElementById('forgot-card').style.display = 'none';
-
-                // Ensure register form is shown, not success message
-                document.getElementById('register-form-container').style.display = 'block';
-                document.getElementById('register-success-container').style.display = 'none';
-
-                // Reset form fields and validation indicators
-                const regForm = document.querySelector('#register-card form');
-                if (regForm) regForm.reset();
-                document.querySelectorAll('.requirement').forEach(el => el.classList.remove('valid'));
-
-                console.log("Navigation: Register view shown and reset.");
-            }
+            const loginCard = document.getElementById('login-card');
+            // Utilisation de getComputedStyle pour être sûr de l'état réel
+            const isLoginVisible = window.getComputedStyle(loginCard).display !== 'none';
+            showCard(isLoginVisible ? 'register-card' : 'login-card');
         }
 
         async function handleLogin(e) {

@@ -10,6 +10,7 @@ SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 def send_verification_email(to_email: str, token: str, full_name: str):
@@ -76,7 +77,37 @@ def send_reset_password_email(to_email: str, token: str):
     _send_email(to_email, subject, html)
 
 def _send_email(to_email: str, subject: str, html_content: str):
-    """Internal helper to send email via SMTP."""
+    """Internal helper to send email via SMTP or Resend API."""
+    import requests
+    
+    # 1. Try Resend API first (Preferred on Render to avoid SMTP blocks)
+    if RESEND_API_KEY:
+        try:
+            # Note: For free tier without a domain, you can only send to yourself
+            # or use the onboarding@resend.dev sender.
+            payload = {
+                "from": "CapInvest <onboarding@resend.dev>",
+                "to": [to_email],
+                "subject": subject,
+                "html": html_content
+            }
+            response = requests.post(
+                "https://api.resend.com/emails",
+                headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
+                json=payload,
+                timeout=10
+            )
+            if response.status_code in [200, 201, 202, 204]:
+                print(f"✓ Email sent via Resend API to {to_email}")
+                return
+            else:
+                print(f"⚠️ Resend API failed ({response.status_code}): {response.text}")
+                # Log and continue to SMTP fallback
+        except Exception as e:
+            print(f"❌ Resend API error: {e}")
+            # Log and continue to SMTP fallback
+
+    # 2. Fallback to SMTP (Development / Paid Render)
     if not SMTP_USER or not SMTP_PASSWORD:
         print(f"\n[STUB] EMAIL SENT TO: {to_email}")
         print(f"[STUB] SUBJECT: {subject}")
@@ -95,6 +126,6 @@ def _send_email(to_email: str, subject: str, html_content: str):
             server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.send_message(msg)
-            print(f"✓ Email sent successfully to {to_email}")
+            print(f"✓ Email sent successfully via SMTP to {to_email}")
     except Exception as e:
-        print(f"❌ Failed to send email to {to_email}: {e}")
+        print(f"❌ Failed to send email via SMTP to {to_email}: {e}")
