@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field, field_validator
 import re
@@ -85,7 +85,7 @@ class ResetPasswordRequest(BaseModel):
         return v
 
 @router.post("/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-def register(user_data: UserRegister, db: Session = Depends(get_db)):
+def register(user_data: UserRegister, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Cet email est déjà utilisé")
@@ -113,8 +113,8 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
     db.add(verify_token)
     db.commit()
     
-    # Send email
-    send_verification_email(new_user.email, token_str, new_user.full_name or "")
+    # Send email in background
+    background_tasks.add_task(send_verification_email, new_user.email, token_str, new_user.full_name or "")
     
     return MessageResponse(message="Compte créé ! Veuillez vérifier vos emails pour l'activer.")
 
@@ -173,7 +173,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=400, detail="Utilisateur non trouvé")
 
 @router.post("/forgot-password", response_model=MessageResponse)
-def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+def forgot_password(data: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
     
     if not user:
@@ -199,8 +199,8 @@ def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     db.add(reset_token)
     db.commit()
     
-    # Send email
-    send_reset_password_email(user.email, token_str)
+    # Send email in background
+    background_tasks.add_task(send_reset_password_email, user.email, token_str)
     
     return MessageResponse(message="Si cet email existe, un lien de réinitialisation a été envoyé.")
 
