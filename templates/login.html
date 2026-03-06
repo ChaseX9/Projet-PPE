@@ -359,6 +359,15 @@
             document.getElementById('register-error-container').style.display = 'none';
             document.getElementById('forgot-error-container').style.display = 'none';
             document.getElementById('forgot-success-container').style.display = 'none';
+
+            // Clear registration form fields
+            const regForm = document.querySelector('#register-card form');
+            if (regForm) regForm.reset();
+
+            // Reset password requirements indicators
+            document.querySelectorAll('.requirement').forEach(el => el.classList.remove('valid'));
+
+            console.log("Navigation: Login view restored, register form reset.");
         }
 
         function showForgot(e) {
@@ -372,7 +381,7 @@
         }
 
         function toggleAuth(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const login = document.getElementById('login-card');
             const register = document.getElementById('register-card');
 
@@ -390,6 +399,13 @@
                 // Ensure register form is shown, not success message
                 document.getElementById('register-form-container').style.display = 'block';
                 document.getElementById('register-success-container').style.display = 'none';
+
+                // Reset form fields and validation indicators
+                const regForm = document.querySelector('#register-card form');
+                if (regForm) regForm.reset();
+                document.querySelectorAll('.requirement').forEach(el => el.classList.remove('valid'));
+
+                console.log("Navigation: Register view shown and reset.");
             }
         }
 

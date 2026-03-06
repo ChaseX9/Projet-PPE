@@ -52,7 +52,7 @@ DEFAULT_STOCK_TICKERS = [
     # Luxe
     "MC.PA", "OR.PA", "RMS.PA", "KER.PA",
     # Énergie & Utilities
-    "TTE.PA", "ENGI.PA", "EDF.PA",
+    "TTE.PA", "ENGI.PA",
     # Industrie & Aéronautique
     "AIR.PA", "AI.PA", "SAF.PA", "SU.PA", "VIE.PA", "SGO.PA",
     # Banques & Finance

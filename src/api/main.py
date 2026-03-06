@@ -41,22 +41,48 @@ async def startup_event():
     from ..database.database import init_db, SessionLocal
     from ..database.seeding import auto_seed_or_update
     from ..data.data_loader import load_or_update_universe
+    import os
+    import threading
     
+    # 1. Immediate initialization (lightweight)
     try:
         init_db()
-        print("✓ Database initialized")
-        
+        print("✓ Database structure initialized")
+    except Exception as e:
+        print(f"❌ Database init error: {e}")
+
+    # 2. Log SMTP Configuration (for debugging Render emails)
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_pass = os.getenv("SMTP_PASSWORD")
+    if smtp_user and smtp_pass:
+        print(f"✓ SMTP configured (User: {smtp_user})")
+    else:
+        print("⚠️ SMTP NOT configured - Emails will be stubbed in logs")
+
+    # 3. Offload ALL heavy tasks to background thread
+    def background_startup():
+        print("🌱 Background startup began...")
         db = SessionLocal()
         try:
+            # Seed Academy (can be slow)
             auto_seed_or_update(db)
+            print("✓ Academy curriculum updated")
+        except Exception as e:
+            print(f"❌ Background seeding error: {e}")
         finally:
             db.close()
             
-        import threading
-        threading.Thread(target=load_or_update_universe, kwargs={"max_age_days": 2}, daemon=True).start()
-        print("✓ Universe update started in background")
-    except Exception as e:
-        print(f"Warning during startup: {e}")
+        try:
+            # Fetch Financial Data (very slow: 5-10 mins for 479 assets)
+            load_or_update_universe(max_age_days=2)
+            print("✓ Universe data refreshed")
+        except Exception as e:
+            print(f"❌ Background data loading error: {e}")
+        
+        print("🚀 Background startup complete")
+
+    threading.Thread(target=background_startup, daemon=True).start()
+    print("⚡ FastAPI ready - App is now listening for Render port scan")
 
 @app.get("/", tags=["Pages"])
 async def root():
