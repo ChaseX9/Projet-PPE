@@ -15,6 +15,7 @@ from ..portfolio.recommender import build_portfolio
 from ..database.database import get_db
 from ..database.models import User, SavedProfile, SavedPortfolio
 from ..auth.dependencies import get_optional_user, get_verified_user
+from ..utils.config import PROJECT_ROOT
 
 router = APIRouter()
 
