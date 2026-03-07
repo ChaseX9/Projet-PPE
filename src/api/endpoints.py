@@ -313,25 +313,39 @@ def evaluate_suggestions(responses: Dict):
         "coherence": coherence
     }
 
-# Global cache for explorer assets to avoid repeated heavy yfinance and pedagogy processing
-_explorer_cache = {
-    "data": None,
-    "timestamp": 0
-}
+# Persistent cache for explorer assets to avoid repeated heavy processing
+EXPLORER_CACHE_FILE = PROJECT_ROOT / "data" / "explorer_cache.json"
+
+async def prefetch_explorer_assets():
+    """Trigger a refresh of the explorer cache. Designed to be called in background."""
+    print("🔭 Prefetching Explorer assets...")
+    try:
+        await get_explorer_assets(force_refresh=True)
+        print("✓ Explorer cache prefilled")
+    except Exception as e:
+        print(f"❌ Explorer prefetch failed: {e}")
 
 @router.get("/api/explorer/assets", response_model=List[ExplorerAsset], tags=["Explorer"])
-async def get_explorer_assets():
+async def get_explorer_assets(force_refresh: bool = False):
     """Get all assets with pedagogical data and simplified history for the Explorer."""
     import time
     import math
+    import json
     from ..data.data_loader import load_or_update_universe, get_sparklines_batch
     from ..data.pedagogy_data import get_asset_pedagogy
     
-    # 1. Check cache (valid for 1 hour)
-    current_time = time.time()
-    if _explorer_cache["data"] and (current_time - _explorer_cache["timestamp"]) < 3600:
-        return _explorer_cache["data"]
-        
+    # 1. Check persistent cache if not forcing refresh
+    if not force_refresh and EXPLORER_CACHE_FILE.exists():
+        try:
+            # Check age (optional: here we trust the file if it exists, 
+            # as it's updated in background by load_or_update_universe)
+            with open(EXPLORER_CACHE_FILE, "r", encoding="utf-8") as f:
+                cached_data = json.load(f)
+                if cached_data:
+                    return cached_data
+        except Exception as e:
+            print(f"⚠️ Cache read error: {e}")
+
     try:
         universe = load_or_update_universe()
         if universe.empty:
@@ -339,76 +353,62 @@ async def get_explorer_assets():
             
         tickers = universe['ticker'].tolist()
         
-        # 2. Batch fetch sparklines (much faster than individual calls)
-        # Using sub-batches internally in data_loader
+        # 2. Batch fetch sparklines
         sparklines = get_sparklines_batch(tickers)
         
-        explorer_assets = []
+        explorer_assets_dicts = []
         for _, row in universe.iterrows():
             ticker = row['ticker']
             
-            # Map volatility to level
             vol = row['volatility']
-            # Defensive check for NaN
-            if math.isnan(vol):
-                vol = 0.0
+            if math.isnan(vol): vol = 0.0
                 
-            if vol < 0.12:
-                level = "Faible"
-            elif vol < 0.22:
-                level = "Modéré"
-            else:
-                level = "Élevé"
+            if vol < 0.12: level = "Faible"
+            elif vol < 0.22: level = "Modéré"
+            else: level = "Élevé"
                 
-            # Get Sparkline from batch results
             asset_sparkline = sparklines.get(ticker, [])
             has_sparkline = len(asset_sparkline) > 0
             
-            # Get Pedagogy with smart fallback
             try:
-                pedagogy = get_asset_pedagogy(
-                    ticker, 
-                    row['asset_type'], 
-                    row['geography'], 
-                    level
-                )
-            except Exception as e:
-                print(f"Pedagogy error for {ticker}: {e}")
+                pedagogy = get_asset_pedagogy(ticker, row['asset_type'], row['geography'], level)
+            except Exception:
                 continue
             
-            explorer_assets.append(ExplorerAsset(
-                ticker=ticker,
-                name=row['name'],
-                asset_type=row['asset_type'],
-                asset_class=row['asset_class'],
-                category=row['category'],
-                geography=row['geography'],
-                sector=row.get('sector'),
-                volatility_level=level,
-                volatility_score=round(vol, 4),
-                is_esg=bool(row['is_esg']),
-                
-                pedagogy_short=pedagogy['pedagogy_short'],
-                pedagogy_long=pedagogy['pedagogy_long'],
-                utility=pedagogy['utility'],
-                why_capinvest=pedagogy['why_capinvest'],
-                suitable_profiles=pedagogy['suitable_profiles'],
-                key_takeaways=pedagogy['key_takeaways'],
-                
-                sparkline=asset_sparkline,
-                has_sparkline=has_sparkline
-            ))
+            # Create dict for easy JSON serialization
+            asset_dict = {
+                "ticker": ticker,
+                "name": row['name'],
+                "asset_type": row['asset_type'].value if hasattr(row['asset_type'], 'value') else row['asset_type'],
+                "asset_class": row['asset_class'].value if hasattr(row['asset_class'], 'value') else row['asset_class'],
+                "category": row['category'].value if hasattr(row['category'], 'value') else row['category'],
+                "geography": row['geography'],
+                "sector": row.get('sector'),
+                "volatility_level": level,
+                "volatility_score": round(vol, 4),
+                "is_esg": bool(row['is_esg']),
+                "pedagogy_short": pedagogy['pedagogy_short'],
+                "pedagogy_long": pedagogy['pedagogy_long'],
+                "utility": pedagogy['utility'],
+                "why_capinvest": pedagogy['why_capinvest'],
+                "suitable_profiles": pedagogy['suitable_profiles'],
+                "key_takeaways": pedagogy['key_takeaways'],
+                "sparkline": asset_sparkline,
+                "has_sparkline": has_sparkline
+            }
+            explorer_assets_dicts.append(asset_dict)
             
-        # Update cache
-        _explorer_cache["data"] = explorer_assets
-        _explorer_cache["timestamp"] = current_time
-        
-        print(f"✓ Cached {len(explorer_assets)} assets for Explorer")
-        return explorer_assets
+        # 3. Update persistent cache
+        try:
+            EXPLORER_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            with open(EXPLORER_CACHE_FILE, "w", encoding="utf-8") as f:
+                json.dump(explorer_assets_dicts, f, ensure_ascii=False, indent=2)
+            print(f"✓ Persistent cache updated with {len(explorer_assets_dicts)} assets")
+        except Exception as e:
+            print(f"⚠️ Cache write error: {e}")
+            
+        return explorer_assets_dicts
         
     except Exception as e:
         print(f"CRITICAL ERROR in get_explorer_assets: {e}")
-        # Return what we have or re-raise
-        if explorer_assets:
-            return explorer_assets
-        raise
+        raise HTTPException(status_code=500, detail=str(e))

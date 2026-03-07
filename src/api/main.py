@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pathlib import Path
 import uvicorn
 
-from .endpoints import router
+from .endpoints import router, prefetch_explorer_assets
 from .auth_endpoints import router as auth_router
 from .portfolio_endpoints import router as portfolio_router
 from .training_endpoints import router as training_router
@@ -78,6 +78,13 @@ async def startup_event():
             print("✓ Universe data refreshed")
         except Exception as e:
             print(f"❌ Background data loading error: {e}")
+            
+        try:
+            # Prefetch Explorer cache (heavy)
+            import asyncio
+            asyncio.run(prefetch_explorer_assets())
+        except Exception as e:
+            print(f"❌ Background explorer prefetch error: {e}")
         
         print("🚀 Background startup complete")
 
