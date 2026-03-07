@@ -480,13 +480,15 @@
         function renderAssets(assets) {
             // Détruire les anciens graphiques pour éviter les fuites de mémoire
             if (window.sparklineCharts) {
-                Object.values(window.sparklineCharts).forEach(chart => chart.destroy());
+                Object.values(window.sparklineCharts).forEach(chart => {
+                    try { chart.destroy(); } catch (e) { }
+                });
             }
             window.sparklineCharts = {};
 
             const list = document.getElementById('assets-list');
 
-            // 1. Mettre à jour le compteur global (statique en haut) si pas encore fait
+            // 1. Mettre à jour le compteur global (statique en haut)
             const staticSummaryDiv = document.getElementById('static-assets-summary');
             if (staticSummaryDiv && !staticSummaryDiv.dataset.initialized && allAssets.length > 0) {
                 const totalEtf = allAssets.filter(a => a.asset_type === 'ETF').length;
@@ -495,11 +497,10 @@
                 staticSummaryDiv.dataset.initialized = 'true';
             }
 
-            // 2. Mettre à jour le compteur dynamique (en dessous des filtres)
+            // 2. Mettre à jour le compteur dynamique
             const dynamicSummaryDiv = document.getElementById('dynamic-assets-summary');
             if (dynamicSummaryDiv) {
                 if (assets.length === allAssets.length) {
-                    // Si on affiche tout, on vide le compteur dynamique pour ne pas faire doublon
                     dynamicSummaryDiv.innerHTML = '';
                 } else if (assets.length > 0) {
                     const filteredEtfCount = assets.filter(a => a.asset_type === 'ETF').length;
@@ -519,58 +520,75 @@
                 return;
             }
 
-            list.innerHTML = assets.map(asset => {
-                // Calculer la variation sur 3 ans avec les données de la sparkline
-                let variationContent = '';
-                let variationClass = '';
-                let isPositive = true;
-
-                if (asset.has_sparkline && asset.sparkline && asset.sparkline.length > 0) {
-                    const points = asset.sparkline;
-                    const startRaw = points[0].price;
-                    const endRaw = points[points.length - 1].price;
-                    isPositive = endRaw >= startRaw;
-
-                    const diff = endRaw - startRaw;
-                    const perf = (startRaw !== 0) ? (diff / startRaw) * 100 : 0;
-
-                    const sign = isPositive ? '+' : '';
-                    variationClass = isPositive ? 'var(--success)' : 'var(--danger)';
-                    variationContent = `<span style="color: ${variationClass}; font-weight: 700; font-size: 0.8rem; margin-left: 0.5rem; display:inline-flex; align-items:center;">${sign}${perf.toFixed(2)}% (3A) <div class="info-tooltip-container" style="margin-left: 4px;"><svg style="color:var(--text-muted); opacity:0.6; cursor:help; width:13px; height:13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span class="custom-tooltip">Évolution du prix de l'actif sur les 3 dernières années</span></div></span>`;
-                }
-
-                const sparklineColor = isPositive ? '#10B981' : '#EF4444'; // Vert ou Rouge
-                const gradientTop = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)';
-                const gradientBottom = isPositive ? 'rgba(16, 185, 129, 0)' : 'rgba(239, 68, 68, 0)';
-
-                return `
-                <div class="card asset-card" onclick="openModal('${asset.ticker}')">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                        <span class="badge ${asset.asset_type === 'ETF' ? 'badge-etf' : 'badge-stock'}">${asset.asset_type}</span>
-                        ${asset.is_esg ? '<span class="badge badge-esg">ESG</span>' : ''}
-                    </div>
-                    <h3 style="margin-bottom: 0.25rem; color: var(--text-main);">${asset.name}</h3>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
-                        <span>${asset.ticker} • ${asset.geography}</span>
-                        ${asset.has_sparkline ? variationContent : ''}
-                    </div>
-                    <div class="card-sparkline" style="position: relative; margin-top: 0.5rem;">
-                        <canvas id="spark-${asset.ticker.replace(/\./g, '-')}" width="300" height="60" data-color="${sparklineColor}" data-gtop="${gradientTop}" data-gbottom="${gradientBottom}" data-name="${asset.name}"></canvas>
-                        <div style="position: absolute; bottom: -5px; right: 0; font-size: 0.65rem; color: var(--text-muted); opacity: 0.7;">3 ans</div>
-                    </div>
-                    <p class="text-muted" style="font-size: 0.85rem; line-height: 1.4; flex-grow: 1;">
-                        ${asset.pedagogy_short}
-                    </p>
-                    <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border-light);">
-                        <span style="font-size: 0.75rem; color: var(--text-muted);">Volatilité : <span style="color: ${getVolColor(asset.volatility_level)}; font-weight: 600;">${asset.volatility_level}</span></span>
-                        <span class="text-muted" style="font-size: 0.75rem;">Détails →</span>
-                    </div>
-                </div>
-            `}).join('');
+            let htmlBuffer = "";
+            const assetsWithSparklines = [];
 
             assets.forEach(asset => {
-                if (asset.has_sparkline) {
-                    drawSparkline(`spark-${asset.ticker.replace(/\./g, '-')}`, asset.sparkline);
+                try {
+                    // Calculer la variation sur 3 ans avec les données de la sparkline
+                    let variationContent = '';
+                    let isPositive = true;
+
+                    if (asset.has_sparkline && asset.sparkline && Array.isArray(asset.sparkline) && asset.sparkline.length > 1) {
+                        const points = asset.sparkline;
+                        const startRaw = points[0].price;
+                        const endRaw = points[points.length - 1].price;
+                        isPositive = endRaw >= startRaw;
+
+                        const diff = endRaw - startRaw;
+                        const perf = (startRaw !== 0) ? (diff / startRaw) * 100 : 0;
+
+                        const sign = isPositive ? '+' : '';
+                        const variationColor = isPositive ? 'var(--success)' : 'var(--danger)';
+                        variationContent = `<span style="color: ${variationColor}; font-weight: 700; font-size: 0.8rem; margin-left: 0.5rem; display:inline-flex; align-items:center;">${sign}${perf.toFixed(2)}% (3A) <div class="info-tooltip-container" style="margin-left: 4px;"><svg style="color:var(--text-muted); opacity:0.6; cursor:help; width:13px; height:13px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg><span class="custom-tooltip">Évolution du prix de l'actif sur les 3 dernières années</span></div></span>`;
+                    }
+
+                    const sparklineColor = isPositive ? '#10B981' : '#EF4444';
+                    const gradientTop = isPositive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)';
+                    const gradientBottom = isPositive ? 'rgba(16, 185, 129, 0)' : 'rgba(239, 68, 68, 0)';
+                    const safeTickerId = asset.ticker.replace(/[^a-zA-Z0-9]/g, '-');
+
+                    htmlBuffer += `
+                        <div class="card asset-card" onclick="openModal('${asset.ticker}')">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                <span class="badge ${asset.asset_type === 'ETF' ? 'badge-etf' : 'badge-stock'}">${asset.asset_type || 'STOCK'}</span>
+                                ${asset.is_esg ? '<span class="badge badge-esg">ESG</span>' : ''}
+                            </div>
+                            <h3 style="margin-bottom: 0.25rem; color: var(--text-main); font-size: 1.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${asset.name || asset.ticker}</h3>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; justify-content: space-between; align-items: center;">
+                                <span>${asset.ticker} • ${asset.geography || 'Global'}</span>
+                                ${asset.has_sparkline ? variationContent : ''}
+                            </div>
+                            <div class="card-sparkline" style="position: relative; margin-top: 0.5rem;">
+                                <canvas id="spark-${safeTickerId}" width="300" height="60" data-color="${sparklineColor}" data-gtop="${gradientTop}" data-gbottom="${gradientBottom}" data-name="${asset.name || asset.ticker}"></canvas>
+                                <div style="position: absolute; bottom: -5px; right: 0; font-size: 0.65rem; color: var(--text-muted); opacity: 0.7;">3 ans</div>
+                            </div>
+                            <p class="text-muted" style="font-size: 0.85rem; line-height: 1.4; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-top: 0.5rem;">
+                                ${asset.pedagogy_short || "Information pédagogique en cours de chargement..."}
+                            </p>
+                            <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Volatilité : <span style="color: ${getVolColor(asset.volatility_level)}; font-weight: 600;">${asset.volatility_level || 'Modéré'}</span></span>
+                                <span class="text-muted" style="font-size: 0.75rem;">Détails →</span>
+                            </div>
+                        </div>
+                    `;
+
+                    if (asset.has_sparkline) {
+                        assetsWithSparklines.push({ id: `spark-${safeTickerId}`, data: asset.sparkline });
+                    }
+                } catch (err) {
+                    console.warn(`⚠️ Error rendering asset ${asset.ticker}:`, err);
+                }
+            });
+
+            list.innerHTML = htmlBuffer;
+
+            // Rendre les graphiques après avoir injecté tout le HTML
+            assetsWithSparklines.forEach(item => {
+                try {
+                    drawSparkline(item.id, item.data);
+                } catch (err) {
+                    console.warn(`⚠️ Error drawing sparkline for ${item.id}:`, err);
                 }
             });
         }
