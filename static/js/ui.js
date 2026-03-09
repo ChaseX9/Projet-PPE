@@ -33,8 +33,58 @@ const UI = {
             document.body.appendChild(container);
         }
 
+        // Initialize Legal Widget
+        this._initLegalWidget();
+
         // Global override for window.alert (non-blocking)
         window.alert = (msg) => this.alert(msg);
+    },
+
+    /**
+     * Initialize the floating legal widget
+     * @private
+     */
+    _initLegalWidget() {
+        if (document.getElementById('legal-widget')) return;
+
+        const widget = document.createElement('div');
+        widget.id = 'legal-widget';
+        widget.className = 'legal-widget-container';
+        widget.innerHTML = `
+            <div class="legal-widget-popup">
+                <span class="legal-widget-title">Informations Légales</span>
+                <div class="legal-widget-links">
+                    <a href="/mentions_legales.html" class="legal-widget-link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        Mentions Légales
+                    </a>
+                    <a href="/politique_confidentialite.html" class="legal-widget-link">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        Confidentialité
+                    </a>
+                </div>
+                <div class="legal-widget-footer">
+                    CapInvest © 2024. Plateforme pédagogique.
+                </div>
+            </div>
+            <div class="legal-widget-trigger" title="Infos Légales">
+                <img src="/static/images/capinvest_logo.png" alt="CapInvest Logo">
+            </div>
+        `;
+        document.body.appendChild(widget);
+
+        // Toggle on click for mobile
+        const trigger = widget.querySelector('.legal-widget-trigger');
+        trigger.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                widget.classList.toggle('active');
+                e.stopPropagation();
+            }
+        });
+
+        document.addEventListener('click', () => {
+            widget.classList.remove('active');
+        });
     },
 
     /**

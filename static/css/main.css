@@ -1342,3 +1342,120 @@ tr.row-hover:hover {
 .toast-info {
     border-left: 4px solid var(--primary);
 }
+/* ── Legal Widget (Floating) ────────────────────────────────── */
+.legal-widget-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.legal-widget-trigger {
+    width: 48px;
+    height: 48px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-base);
+    overflow: hidden;
+}
+
+.legal-widget-trigger img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    opacity: 0.8;
+    transition: opacity var(--transition-fast);
+}
+
+.legal-widget-trigger:hover {
+    transform: scale(1.1) rotate(5deg);
+    border-color: var(--primary);
+    background: var(--bg-secondary);
+}
+
+.legal-widget-trigger:hover img {
+    opacity: 1;
+}
+
+.legal-widget-popup {
+    position: absolute;
+    bottom: 0;
+    right: 60px;
+    width: 280px;
+    background: rgba(44, 40, 37, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--shadow-xl);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px);
+    transition: all var(--transition-base);
+    pointer-events: none;
+}
+
+.legal-widget-container:hover .legal-widget-popup,
+.legal-widget-container.active .legal-widget-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: all;
+}
+
+.legal-widget-title {
+    color: var(--primary-light);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+.legal-widget-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.legal-widget-link {
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.legal-widget-link:hover {
+    background: var(--primary-bg);
+    color: var(--primary-light);
+    text-decoration: none;
+}
+
+.legal-widget-link svg {
+    opacity: 0.7;
+}
+
+.legal-widget-footer {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-light);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
