@@ -323,9 +323,21 @@
     <script src="/static/js/ui.js?v=9"></script>
     <script src="/static/js/api.js?v=9"></script>
     <script>
-        if (api.isAuthenticated()) {
+        // Intelligent redirect: if logged in, go to dashboard
+        // EXCEPT if we just registered or explicitly want to see the signup form
+        const urlParams = new URLSearchParams(window.location.search);
+        const isRegistrationContext = urlParams.get('msg') === 'registered' || window.location.hash === '#register';
+
+        if (api.isAuthenticated() && !isRegistrationContext) {
             window.location.href = '/espace_perso.html';
         }
+
+        // Handle direct navigation to #register
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.hash === '#register') {
+                showCard('register-card');
+            }
+        });
 
         function togglePassword(inputId, button) {
             const input = document.getElementById(inputId);
