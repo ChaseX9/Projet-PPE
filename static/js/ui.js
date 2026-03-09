@@ -64,7 +64,7 @@ const UI = {
                     </a>
                 </div>
                 <div class="legal-widget-footer">
-                    CapInvest © 2024. Plateforme pédagogique.
+                    CapInvest © ${new Date().getFullYear()}. Plateforme pédagogique.
                 </div>
             </div>
             <div class="legal-widget-trigger" title="Infos Légales">
