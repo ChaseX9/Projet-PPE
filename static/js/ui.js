@@ -47,6 +47,12 @@ const UI = {
     _initLegalWidget() {
         if (document.getElementById('legal-widget')) return;
 
+        // Skip legal widget on login/registration page
+        const path = window.location.pathname;
+        if (path === '/' || path === '/login.html' || path === '/index.html') {
+            return;
+        }
+
         const widget = document.createElement('div');
         widget.id = 'legal-widget';
         widget.className = 'legal-widget-container';
