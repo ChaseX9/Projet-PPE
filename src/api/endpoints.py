@@ -78,6 +78,15 @@ async def get_recommendation(
                 db.commit()
                 db.refresh(saved_profile)
                 
+                # Mark parent as superseded to avoid duplicates in tracking
+                if request.parent_portfolio_id:
+                    parent = db.query(SavedPortfolio).filter(
+                        SavedPortfolio.id == request.parent_portfolio_id,
+                        SavedPortfolio.user_id == current_user.id
+                    ).first()
+                    if parent and parent.status in ["proposed", "adjusted"]:
+                        parent.status = "superseded"
+                
                 saved_portfolio = SavedPortfolio(
                     user_id=current_user.id,
                     profile_id=saved_profile.id,
