@@ -47,9 +47,8 @@ const UI = {
     _initLegalWidget() {
         if (document.getElementById('legal-widget')) return;
 
-        // Skip legal widget on login/registration page
-        const path = window.location.pathname;
-        if (path === '/' || path === '/login.html' || path === '/index.html') {
+        // Skip legal widget on login/registration page (DOM-based detection is most reliable)
+        if (document.getElementById('login-card') || document.getElementById('register-card')) {
             return;
         }
 
