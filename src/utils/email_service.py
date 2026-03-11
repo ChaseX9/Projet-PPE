@@ -11,6 +11,7 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 def send_verification_email(to_email: str, token: str, full_name: str):
@@ -77,10 +78,36 @@ def send_reset_password_email(to_email: str, token: str):
     _send_email(to_email, subject, html)
 
 def _send_email(to_email: str, subject: str, html_content: str):
-    """Internal helper to send email via SMTP or Resend API."""
+    """Internal helper to send email via Brevo, Resend or SMTP."""
     import requests
     
-    # 1. Try Resend API first (Preferred on Render to avoid SMTP blocks)
+    # 1. Try Brevo API (Best for free tier without domain)
+    if BREVO_API_KEY:
+        try:
+            payload = {
+                "sender": {"name": "CapInvest", "email": SMTP_USER or "contact@capinvest.fr"},
+                "to": [{"email": to_email}],
+                "subject": subject,
+                "htmlContent": html_content
+            }
+            response = requests.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": BREVO_API_KEY,
+                    "Content-Type": "application/json"
+                },
+                json=payload,
+                timeout=10
+            )
+            if response.status_code in [200, 201, 202, 204]:
+                print(f"✓ Email sent via Brevo API to {to_email}")
+                return
+            else:
+                print(f"⚠️ Brevo API failed ({response.status_code}): {response.text}")
+        except Exception as e:
+            print(f"❌ Brevo API error: {e}")
+
+    # 2. Try Resend API (Requires domain for public sending)
     if RESEND_API_KEY:
         try:
             # Note: For free tier without a domain, you can only send to yourself
