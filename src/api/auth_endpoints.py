@@ -18,6 +18,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
     full_name: Optional[str] = None
+    access_code: Optional[str] = None # Added for test mode bypass
 
     @field_validator("password")
     @classmethod
@@ -84,25 +85,48 @@ class ResetPasswordRequest(BaseModel):
             raise ValueError("Le mot de passe doit contenir au moins un caractère spécial")
         return v
 
+@router.get("/test-config", tags=["Authentication"])
+def get_test_config():
+    """Returns whether the test access code mode is enabled."""
+    from ..utils.config import ENABLE_TEST_ACCESS_CODE
+    return {"active": ENABLE_TEST_ACCESS_CODE}
+
 @router.post("/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserRegister, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Cet email est déjà utilisé")
     
+    # Logic for test access bypass
+    from ..utils.config import ENABLE_TEST_ACCESS_CODE, TEST_ACCESS_CODE
+    
+    is_test_bypass = False
+    if ENABLE_TEST_ACCESS_CODE and user_data.access_code:
+        if user_data.access_code == TEST_ACCESS_CODE:
+            is_test_bypass = True
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Code d'accès invalide."
+            )
+
     new_user = User(
         email=user_data.email,
         hashed_password=hash_password(user_data.password),
         full_name=user_data.full_name,
-        is_active=False,      # Account inactive until email verified
-        email_verified=False, # Email not verified yet
+        is_active=is_test_bypass,      # Active immediately if bypass used
+        email_verified=is_test_bypass, # Verified immediately if bypass used
+        is_test_user=is_test_bypass,   # Flag for audit
         privacy_policy_accepted_at=datetime.utcnow()
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     
-    # Generate verification token
+    if is_test_bypass:
+        return MessageResponse(message="Compte test activé ! Vous pouvez vous connecter immédiatement.")
+
+    # Generate verification token (Normal Flow)
     token_str = uuid4().hex
     verify_token = AuthToken(
         user_id=new_user.id,
@@ -113,7 +137,7 @@ def register(user_data: UserRegister, background_tasks: BackgroundTasks, db: Ses
     db.add(verify_token)
     db.commit()
     
-    # Send email in background
+    # Send email in background (Normal Flow)
     background_tasks.add_task(send_verification_email, new_user.email, token_str, new_user.full_name or "")
     
     return MessageResponse(message="Compte créé ! Veuillez vérifier vos emails pour l'activer.")

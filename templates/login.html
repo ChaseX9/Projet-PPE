@@ -278,6 +278,16 @@
                     <!-- Privacy Policy Acceptance -->
                     <div class="form-group"
                         style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                        <div id="test-access-container" style="display: none; margin-bottom: 1.5rem;">
+                            <label for="reg-access-code" style="color: var(--primary); font-weight: 600;">Code d'accès
+                                Test (Optionnel)</label>
+                            <input type="text" id="reg-access-code" placeholder="Entrez votre code de testeur"
+                                style="border-color: var(--primary); background: rgba(74, 144, 164, 0.05);">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.4rem;">
+                                Si vous utilisez un code valide, votre compte sera activé immédiatement sans
+                                vérification email.
+                            </p>
+                        </div>
                         <label
                             style="display: flex; align-items: start; gap: 0.5rem; cursor: pointer; font-weight: normal;">
                             <input type="checkbox" id="privacy-acceptance" required
@@ -338,9 +348,21 @@
         }
 
         // Handle direct navigation to #register
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             if (window.location.hash === '#register') {
                 showCard('register-card');
+            }
+
+            // Check for Test Mode Config
+            try {
+                const config = await api.get('/auth/test-config');
+                if (config && config.active) {
+                    const testContainer = document.getElementById('test-access-container');
+                    if (testContainer) testContainer.style.display = 'block';
+                    console.log("%c⚠️ MODE TEST ACTIF", "color: orange; font-weight: bold; font-size: 1.2rem;");
+                }
+            } catch (err) {
+                console.warn("Could not fetch test config:", err);
             }
         });
 
@@ -467,6 +489,7 @@
                     email,
                     password: pass,
                     full_name: name,
+                    access_code: document.getElementById('reg-access-code')?.value || null,
                     privacy_policy_accepted: true
                 });
 

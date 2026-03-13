@@ -14,6 +14,7 @@ class User(Base):
     full_name = Column(String)
     is_active = Column(Boolean, default=False)
     email_verified = Column(Boolean, default=False)
+    is_test_user = Column(Boolean, default=False) # Marked for bypass/audit
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # GDPR Compliance fields

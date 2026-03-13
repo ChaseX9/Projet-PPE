@@ -24,6 +24,10 @@ export SMTP_USER="capinvest.noreply@gmail.com"
 export SMTP_PASSWORD="rkiuilntphwkcece"
 export BASE_URL="http://127.0.0.1:8000"
 # ----------------------------------
+# --- Mode Test (Optionnel) ---
+export ENABLE_TEST_ACCESS_CODE="true"
+export TEST_ACCESS_CODE="captest"
+# ------------------------------
 
 # Check if port 8000 is already in use
 PORT=8000

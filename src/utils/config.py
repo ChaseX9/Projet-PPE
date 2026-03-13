@@ -6,6 +6,14 @@ DATA_DIR = PROJECT_ROOT / "data"
 UNIVERSE_FILE = DATA_DIR / "universe.csv"
 DATABASE_URL = f"sqlite:///{DATA_DIR}/robo_advisor.db"
 
+# User Test / Bypass configurations (Temporary)
+import os
+ENABLE_TEST_ACCESS_CODE = os.environ.get("ENABLE_TEST_ACCESS_CODE", "false").lower() == "true"
+TEST_ACCESS_CODE = os.environ.get("TEST_ACCESS_CODE", "")
+
+if ENABLE_TEST_ACCESS_CODE:
+    print("⚠️  WARNING: User Test Mode is ENABLED. Access code bypass is active.")
+
 # Data update settings
 YAHOO_FINANCE_PERIOD = "3y"  # Historical data period for volatility calculation
 VOLATILITY_WINDOW_YEARS = 3  # Years to use for volatility calculation
