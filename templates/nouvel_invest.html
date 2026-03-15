@@ -225,21 +225,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #ef4444;
-            border: 2px solid #fff;
+            background: var(--bg-secondary);
+            border: 1.5px solid var(--border);
             border-radius: 50%;
-            color: white;
+            color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
             padding: 0;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+            box-shadow: var(--shadow-sm);
         }
 
         .exclude-asset-btn:hover {
-            background: #dc2626 !important;
+            background: var(--danger) !important;
+            border-color: var(--danger) !important;
+            color: white !important;
             transform: scale(1.15) rotate(90deg);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+            box-shadow: 0 4px 12px rgba(200, 75, 75, 0.4);
         }
 
         /* Partner Cards Styles */

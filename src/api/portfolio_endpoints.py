@@ -20,7 +20,7 @@ def get_portfolios(
     """List all portfolios for current user."""
     portfolios = db.query(SavedPortfolio).filter(
         SavedPortfolio.user_id == current_user.id,
-        SavedPortfolio.status != "superseded"
+        SavedPortfolio.status == "accepted"
     ).order_by(SavedPortfolio.created_at.desc()).offset(offset).limit(limit).all()
     
     return portfolios
