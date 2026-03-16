@@ -2,6 +2,7 @@
 import asyncio
 import sys
 from pathlib import Path
+from datetime import datetime
 
 # Add project root to sys.path
 root = Path(__file__).parent.parent
@@ -16,7 +17,8 @@ from src.data.data_loader import load_or_update_universe
 from src.api.endpoints import get_explorer_assets
 
 async def main():
-    print("🚀 Starting Automatic Data Update Cycle...")
+    print("🚀 Starting Automatic Data Update Cycle [v2.0 - Batch Mode]...")
+    print(f"⏰ Execution time: {datetime.now().isoformat()}")
     
     try:
         # Ensure data directory exists

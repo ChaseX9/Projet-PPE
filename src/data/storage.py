@@ -17,6 +17,16 @@ def save_universe_to_csv(df: pd.DataFrame, file_path: Path):
         print(f"⚠️  Not saving empty DataFrame to {file_path}. Preserving existing file.")
         return
 
+    # Anti-wipe safety: if file exists, don't allow a massive drop in asset count
+    if file_path.exists():
+        try:
+            old_df = pd.read_csv(file_path)
+            if not old_df.empty and len(df) < len(old_df) * 0.5:
+                print(f"⚠️  CRITICAL: New universe ({len(df)}) is < 50% of old universe ({len(old_df)}). Aborting save to protect data.")
+                return
+        except Exception:
+            pass
+
     # Ensure directory exists
     file_path.parent.mkdir(parents=True, exist_ok=True)
     

@@ -403,35 +403,57 @@ def get_sparklines_batch(tickers: List[str], period: str = "3y", points: int = 2
 
 
 def fetch_universe_batch(tickers: List[str], asset_type: AssetType) -> pd.DataFrame:
-    """Fetch data for a batch of tickers, including sector and reliability score."""
+    """Fetch data for a batch of tickers using bulk history download for speed and metadata for precision."""
     results = []
+    if not tickers:
+        return pd.DataFrame()
+        
+    print(f"🚀 Bulk fetching history for {len(tickers)} {asset_type.value}s...")
     
-    print(f"Fetching data for {len(tickers)} {asset_type.value}s...")
+    # 1. Bulk Download History (Highly efficient, one large request)
+    try:
+        all_hist = yf.download(tickers, period="3y", progress=False, group_by='ticker', threads=True)
+    except Exception as e:
+        print(f"❌ Bulk history download failed: {e}")
+        return pd.DataFrame()
+
+    print(f"🔍 Processing metadata and calculating stats (with 1.5s delay between assets)...")
     
     for ticker in tickers:
         try:
+            # A. Get history from bulk data
+            if len(tickers) > 1 and isinstance(all_hist.columns, pd.MultiIndex):
+                if ticker not in all_hist.columns.levels[0]:
+                    print(f"  ⚠️ No data for {ticker} in bulk download")
+                    continue
+                hist = all_hist[ticker]
+            else:
+                hist = all_hist
+
+            # Check if history is valid
+            if hist.empty or len(hist.dropna(subset=['Close'])) < 30:
+                print(f"  ⚠️ Skipping {ticker} - insufficient history")
+                continue
+
+            # B. Get Metadata (info) via individual Ticker object
+            # This is the part that trigger rate limits, so we space it out
+            time.sleep(1.5) 
             t = yf.Ticker(ticker)
             info = t.info
             
             name = info.get('shortName', info.get('longName', ticker))
             
-            # Performance stats
-            hist = t.history(period="3y")
-            if hist.empty or len(hist) < 30:
-                print(f"  ⚠️ Skipping {ticker} - insufficient history")
-                continue
-            
             # --- Volatility ---
-            returns = hist['Close'].pct_change().dropna()
+            prices = hist['Close'].dropna()
+            returns = prices.pct_change().dropna()
             volatility = float(returns.std() * np.sqrt(252))
             
             # --- Liquidity ---
             avg_volume = float(hist['Volume'].mean())
-            last_price = float(hist['Close'].iloc[-1])
+            last_price = float(prices.iloc[-1])
             liquidity = avg_volume * last_price
             
             # --- Annualized return & Sharpe ---
-            prices = hist['Close'].dropna()
             n_years = len(prices) / 252
             total_return = (prices.iloc[-1] / prices.iloc[0]) - 1
             ann_return = (1 + total_return) ** (1 / max(n_years, 0.5)) - 1
@@ -473,20 +495,16 @@ def fetch_universe_batch(tickers: List[str], asset_type: AssetType) -> pd.DataFr
                 "ann_return": round(ann_return, 4),
                 "expense_ratio": info.get('expenseRatio', 0.001) if asset_type == AssetType.ETF else 0.0,
                 "is_esg": asset_class == AssetClass.ESG,
-                # Reliability score calculated AFTER collecting all liquidities
-                "reliability_score": 0.0,  # placeholder, calculated below
+                "reliability_score": 0.0,
             })
-            
-            time.sleep(0.1)
-            
+            print(f"  ✅ Processed {ticker}")
+
         except Exception as e:
-            print(f"Error fetching {ticker}: {e}")
-            # Potential lock error or rate limit - wait a bit longer
-            time.sleep(1)
+            print(f"Error processing {ticker}: {e}")
             continue
             
     if not results:
-        print(f"❌ Fetching failed for ALL {len(tickers)} {asset_type.value}s.")
+        print(f"❌ Processing failed for ALL {len(tickers)} {asset_type.value}s.")
         return pd.DataFrame()
         
     df = pd.DataFrame(results)
