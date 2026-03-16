@@ -13,6 +13,10 @@ def save_universe_to_csv(df: pd.DataFrame, file_path: Path):
         df: DataFrame containing the universe
         file_path: Path to the CSV file
     """
+    if df is None or df.empty:
+        print(f"⚠️  Not saving empty DataFrame to {file_path}. Preserving existing file.")
+        return
+
     # Ensure directory exists
     file_path.parent.mkdir(parents=True, exist_ok=True)
     
@@ -26,18 +30,27 @@ def save_universe_to_csv(df: pd.DataFrame, file_path: Path):
 
 def load_universe_from_csv(file_path: Path) -> pd.DataFrame:
     """
-    Load the universe DataFrame from CSV.
+    Load the universe DataFrame from CSV. Handles EmptyDataError.
     
     Args:
         file_path: Path to the CSV file
         
     Returns:
-        DataFrame or None if file doesn't exist
+        DataFrame or None if file doesn't exist or is empty
     """
     if not file_path.exists():
         return None
-        
-    return pd.read_csv(file_path)
+    
+    try:
+        # Check file size first
+        if os.path.getsize(file_path) == 0:
+            print(f"⚠️  File {file_path} is empty.")
+            return None
+            
+        return pd.read_csv(file_path)
+    except Exception as e:
+        print(f"❌ Error loading {file_path}: {e}")
+        return None
 
 def get_universe_age(file_path: Path) -> Optional[int]:
     """

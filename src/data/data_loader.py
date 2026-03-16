@@ -481,8 +481,14 @@ def fetch_universe_batch(tickers: List[str], asset_type: AssetType) -> pd.DataFr
             
         except Exception as e:
             print(f"Error fetching {ticker}: {e}")
+            # Potential lock error or rate limit - wait a bit longer
+            time.sleep(1)
             continue
             
+    if not results:
+        print(f"❌ Fetching failed for ALL {len(tickers)} {asset_type.value}s.")
+        return pd.DataFrame()
+        
     df = pd.DataFrame(results)
     
     # Calculate reliability scores now that we have all liquidities
@@ -555,6 +561,10 @@ def load_or_update_universe(max_age_days: int = 2) -> pd.DataFrame:
     
     full_df = pd.concat([etf_df, stock_df], ignore_index=True)
     
+    if full_df.empty:
+        print("❌ Total fresh fetch failed (0 assets). Preserving existing universe file.")
+        return existing_df if existing_df is not None else pd.DataFrame()
+
     # Re-calculate reliability scores across the FULL universe (for proper normalization)
     if not full_df.empty and "liquidity" in full_df.columns:
         liq_series = full_df["liquidity"]
