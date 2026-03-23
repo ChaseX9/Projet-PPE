@@ -176,7 +176,7 @@ add_heading(doc, "1.3 Périmètre de l'étude", 2)
 add_para(doc, "L'étude porte sur l'ensemble des composants réalisés :")
 for scope in [
     "Backend API REST (Python / FastAPI) — 5 routers, 30+ endpoints",
-    "Base de données locale (SQLite / SQLAlchemy) — 8 modèles ORM",
+    "Base de données locale (SQLite / SQLAlchemy) — 9 modèles ORM",
     "Moteur d'optimisation financière (Markowitz, Black-Litterman, CVXPY)",
     "Système d'authentification complet (JWT, bcrypt, vérification e-mail, reset MDP)",
     "Interface utilisateur (HTML / CSS / Vanilla JS) — 16 pages",
@@ -202,7 +202,7 @@ add_para(doc,
 )
 for src in [
     "Code source (dossiers src/, scripts/, templates/, static/)",
-    "Documentation du projet (README.md, PROJECT_HANDOVER.md)",
+    "Documentation du projet (README.md)",
     "Requirements techniques fixés dans requirements.txt (30 dépendances)",
     "Documentation officielle FastAPI, SQLAlchemy, PyPortfolioOpt, CVXPY",
     "Référentiel MiFID II — Directive 2014/65/UE",
@@ -226,7 +226,7 @@ add_para(doc,
 add_heading(doc, "Technologies effectivement utilisées", 3)
 tech_rows = [
     ("FastAPI 0.129", "Framework API REST", "5 routers montés dans main.py (auth, portfolio, training, RGPD, core). 30+ endpoints.", "✅ Maîtrisé"),
-    ("SQLite + SQLAlchemy 2.0", "SGBD local + ORM", "8 modèles : User, SavedProfile, SavedPortfolio, Module, Lesson, Question, UserLessonProgress, AuthToken.", "✅ Fonctionnel"),
+    ("SQLite + SQLAlchemy 2.0", "SGBD local + ORM", "9 modèles : User, SavedProfile, SavedPortfolio, Module, Lesson, Question, UserLessonProgress, UserTrainingStats, AuthToken.", "✅ Fonctionnel"),
     ("yfinance 1.1 + Tenacity", "Données financières", "479 actifs (405 Actions + 74 ETFs — US, Europe, Global, Émergents). Cache 48h (universe.csv). Tenacity gère les retries automatiques sur yfinance.", "✅ Résilient"),
     ("PyPortfolioOpt + CVXPY + scipy", "Optimisation", "Markowitz Mean-Variance (optimizer.py). CVXPY/scipy comme solveurs avancés. Contraintes 2–10 actifs, concentration 30–50%.", "✅ Opérationnel"),
     ("Black-Litterman", "Optimisation expert", "Réservé profils « Expert ». Verrouillage automatique si profil novice (gating MiFID II).", "✅ Implémenté"),
@@ -370,7 +370,7 @@ add_para(doc,
 org_items = [
     "Développement itératif par phases : le projet a été découpé en 12 phases (Phase 1 : modèle mathématique → Phase 12 : déploiement cloud), permettant des livraisons progressives et testables.",
     "Documentation interne : README.md maintenu en continu comme documentation principale du projet.",
-    "Scripts de maintenance : 24 scripts dans scripts/ (seeding, migration, debug, refresh univers) structurent les opérations récurrentes.",
+    "Scripts de maintenance : 3 scripts essentiels dans scripts/ (seeding, migration, debug, refresh univers) structurent les opérations récurrentes.",
     "Tests automatisés : dossier tests/ avec pytest et httpx.",
     "Gestion multi-plateforme : scripts de lancement pour Mac (lancer_app_mac.sh) et Windows (lancer_app_win.bat).",
     "Versioning : projet géré sous Git (.gitignore configuré).",
@@ -387,7 +387,7 @@ arch_items = [
     "src/auth/ + src/utils/ : auth, dépendances, email_service (Resend API & SMTP), config",
     "templates/ : 16 pages HTML (dont mentions_legales.html, politique_confidentialite.html, gestion_donnees.html)",
     "static/ : CSS + 7 fichiers JS (api.js, ui.js, smart-suggestions.js, cookie-consent.js, html2pdf, jsPDF, tour.js)",
-    "scripts/ : 25 scripts utilitaires",
+    "scripts/ : 3 scripts utilitaires (nettoyage effectué)",
 ]
 for item in arch_items:
     add_bullet(doc, item)
@@ -508,37 +508,26 @@ run = tree.add_run(
 """Projet PPE/
 ├── src/
 │   ├── api/
-│   │   ├── main.py                    ← Point d'entrée FastAPI (5 routers)
-│   │   ├── endpoints.py               ← Routes principales (portfolio, profil)
-│   │   ├── auth_endpoints.py          ← Auth (register, login, verify, reset)
-│   │   ├── portfolio_endpoints.py     ← Cycle de vie portefeuille
-│   │   ├── training_endpoints.py      ← Academy (modules, leçons, quiz)
-│   │   └── gdpr_endpoints.py          ← Export et suppression données RGPD
+│   │   ├── main.py                    ← Point d'entrée FastAPI
+│   │   ├── endpoints.py               ← Routes portfolio & profil
+│   │   └── auth_endpoints.py          ← Register, Login, Verify, Reset
 │   ├── portfolio/
 │   │   ├── optimizer.py               ← Markowitz + Black-Litterman
-│   │   ├── recommender.py             ← Sélection et filtrage des actifs
-│   │   ├── explainer.py               ← Explications textuelles (Core/Diversif.)
-│   │   └── filters.py                 ← Filtrage avancé de l'univers
+│   │   └── explainer.py               ← Explications textuelles
 │   ├── profile/
-│   │   ├── suggestion_rules.py        ← Logique Safety-First MiFID II
-│   │   ├── suggestion_engine.py       ← Moteur de suggestions temps réel
-│   │   ├── profile_engine.py          ← Moteur de classification des profils + cohérence MiFID II
-│   │   └── profile_builder.py         ← Construction du profil refiné
+│   │   ├── suggestion_rules.py        ← MiFID II logic
+│   │   └── profile_engine.py          ← Profiler & Cohérence
 │   ├── database/
-│   │   └── models.py                  ← 8 modèles SQLAlchemy (+ AuthToken)
-│   ├── auth/ + utils/                 ← JWT, email_service, config
-│   └── data/                          ← data_loader, storage, universe
+│   │   └── models.py                  ← 9 modèles SQLAlchemy
+│   └── data/                          ← Univese, loader, storage
 ├── templates/                         ← 16 fichiers HTML
-│   ├── explorer.html                  ← Explorateur univers actifs [NOUVEAU]
-│   ├── reset_password.html            ← Reset MDP [NOUVEAU]
-│   └── verify_status.html             ← Vérification e-mail [NOUVEAU]
-├── static/
-│   └── js/                            ← 7 fichiers JS (api.js, ui.js, cookie-consent...)
-├── scripts/                           ← 24 scripts utilitaires
-├── data/
-│   └── universe.csv                   ← 479 actifs — 405 Actions + 74 ETFs (cache 48h)
-├── render.yaml                        ← Configuration déploiement Render [NOUVEAU]
-└── requirements.txt                   ← 30 dépendances Python (versions fixes)"""
+├── static/                            ← JS & CSS
+├── scripts/
+│   ├── refresh_universe.py            ← Mise à jour des données
+│   ├── generate_feasibility_study.py  ← Générateur de ce document
+│   └── bot_update_cycle.py            ← Cycle de mise à jour auto
+└── data/
+    └── universe.csv                   ← 479 actifs financiers"""
 )
 run.font.name = 'Courier New'
 run.font.size = Pt(8)
