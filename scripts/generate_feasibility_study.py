@@ -79,6 +79,33 @@ def color_last_col(table, col_idx, color_map):
                 break
         set_cell_bg(cell, bg)
 
+def add_toc(doc):
+    paragraph = doc.add_paragraph()
+    run = paragraph.add_run()
+    fldChar = OxmlElement('w:fldChar')
+    fldChar.set(qn('w:fldCharType'), 'begin')
+    run._r.append(fldChar)
+
+    run = paragraph.add_run()
+    instrText = OxmlElement('w:instrText')
+    instrText.set(qn('xml:space'), 'preserve')
+    instrText.text = 'TOC \\o "1-3" \\h \\z \\u'
+    run._r.append(instrText)
+
+    run = paragraph.add_run()
+    fldChar = OxmlElement('w:fldChar')
+    fldChar.set(qn('w:fldCharType'), 'separate')
+    run._r.append(fldChar)
+
+    run = paragraph.add_run("Attention : Cliquez ici, puis clic-droit et 'Mettre à jour les champs' pour générer le sommaire.")
+    run.font.italic = True
+    run.font.color.rgb = RGBColor(0x99, 0x99, 0x99)
+
+    run = paragraph.add_run()
+    fldChar = OxmlElement('w:fldChar')
+    fldChar.set(qn('w:fldCharType'), 'end')
+    run._r.append(fldChar)
+
 # ─── Document ────────────────────────────────────────────────────────────────
 
 doc = Document()
@@ -108,6 +135,13 @@ for line in ["Date : Mars 2026\n", "Équipe : 4 étudiants\n", "Méthode : TELOS
     run = meta.add_run(line)
     run.font.size = Pt(11); run.font.color.rgb = RGBColor(0x66,0x66,0x66)
 
+doc.add_page_break()
+
+# ══════════════════════════════════════════════
+# SOMMAIRE
+# ══════════════════════════════════════════════
+add_heading(doc, "Sommaire", 1)
+add_toc(doc)
 doc.add_page_break()
 
 # ══════════════════════════════════════════════
@@ -349,11 +383,11 @@ arch_items = [
     "src/api/ : 5 routers (core, auth, portfolio, training, RGPD) — 30+ endpoints",
     "src/portfolio/ : optimizer, recommender, explainer, filters, allocation",
     "src/profile/ : suggestion_rules, suggestion_engine, profile_engine, profile_builder, schemas",
-    "src/database/ : 8 modèles SQLAlchemy + seeding automatique",
-    "src/auth/ + src/utils/ : auth, dépendances, email_service, config",
-    "templates/ : 16 pages HTML",
+    "src/database/ : 9 modèles SQLAlchemy (User, SavedProfile, SavedPortfolio, Module, Lesson, Question, UserLessonProgress, UserTrainingStats, AuthToken) + seeding automatique",
+    "src/auth/ + src/utils/ : auth, dépendances, email_service (Resend API & SMTP), config",
+    "templates/ : 16 pages HTML (dont mentions_legales.html, politique_confidentialite.html, gestion_donnees.html)",
     "static/ : CSS + 7 fichiers JS (api.js, ui.js, smart-suggestions.js, cookie-consent.js, html2pdf, jsPDF, tour.js)",
-    "scripts/ : 24 scripts utilitaires",
+    "scripts/ : 25 scripts utilitaires",
 ]
 for item in arch_items:
     add_bullet(doc, item)
@@ -434,7 +468,7 @@ add_para(doc,
 add_heading(doc, "4.3 Risques identifiés et mitigation", 2)
 risk_rows = [
     ("Dépendance à Yahoo Finance", "Moyen", "API gratuite non garantie (rate limits, données manquantes)", "Cache 48h (universe.csv) + Tenacity pour retries automatiques + script refresh manuel"),
-    ("Service e-mail externe", "Faible", "L'activation du compte et le reset MDP dépendent d'un service e-mail tiers", "Service gratuit en phase académique. En production : SendGrid / SES avec SLA"),
+    ("Service e-mail tiers (Resend/Gmail)", "Faible", "La vérification de compte et le reset MDP dépendent de Resend (API) ou Gmail (SMTP)", "Utilisation du plan gratuit Resend + fallback SMTP. Transition vers un plan Pro Resend/Postmark recommandée en production."),
     ("SQLite en multi-utilisateurs", "Faible (PPE)", "SQLite non recommandé pour accès concurrent massif", "Acceptable en phase académique. Migration PostgreSQL prévue si déploiement réel"),
     ("Agrément AMF non détenu", "Faible (PPE)", "En conditions réelles, agrément requis pour conseil en investissement", "Périmètre académique défini. Conformité MiFID II démonstrable"),
 ]
@@ -453,11 +487,10 @@ doc.add_paragraph()
 
 add_heading(doc, "4.4 Recommandations pour la suite", 2)
 for rec in [
-    "Activer le déploiement sur Render (render.yaml déjà configuré) pour rendre l'application accessible à des testeurs externes.",
-    "Migrer vers PostgreSQL si un accès multi-utilisateurs simultané est requis en production.",
-    "Remplacer yfinance par une API financière professionnelle (ex. Alpha Vantage, Polygon.io) pour garantir la disponibilité des données.",
-    "Compléter la couverture de tests (pytest) pour les cas limites du questionnaire, de l'optimiseur et des endpoints d'authentification.",
-    "Finaliser l'intégration de scikit-learn pour des fonctionnalités de classification ML des profils utilisateurs.",
+    "Passer à une instance Render payante pour supprimer les délais de réactivation (cold starts) et garantir une disponibilité continue.",
+    "Migrer vers PostgreSQL sur Render (le plan gratuit actuel utilise SQLite en local, limitant l'évolutivité).",
+    "Remplacer yfinance par une API financière professionnelle (ex: Bloomberg, Refinitiv) pour garantir la stabilité et la précision des flux de données.",
+    "Finaliser l'intégration poussée de scikit-learn pour affiner la classification automatique des profils investisseurs.",
 ]:
     add_bullet(doc, rec)
 
