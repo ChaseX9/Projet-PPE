@@ -11,3 +11,5 @@ data/robo_advisor.db
 # OS
 .DS_Store
 Thumbs.db
+Etude_Faisabilite_RoboAdvisor.docx
+scripts/generate_feasibility_study.py
