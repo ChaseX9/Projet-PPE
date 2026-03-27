@@ -381,7 +381,7 @@ async def get_explorer_assets(force_refresh: bool = False):
             has_sparkline = len(asset_sparkline) > 0
             
             try:
-                pedagogy = get_asset_pedagogy(ticker, row['asset_type'], row['geography'], level)
+                pedagogy = get_asset_pedagogy(ticker, row['name'], row['asset_type'], row['geography'], level)
             except Exception:
                 continue
             

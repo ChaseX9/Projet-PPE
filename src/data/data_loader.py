@@ -361,10 +361,12 @@ def get_sparklines_batch(tickers: List[str], period: str = "3y", points: int = 2
             
             for ticker in sub_tickers:
                 try:
-                    if len(sub_tickers) > 1 and isinstance(data.columns, pd.MultiIndex):
-                        if ticker not in data.columns.levels[0]: continue
+                    if isinstance(data.columns, pd.MultiIndex):
+                        if ticker not in data.columns.get_level_values(0):
+                            continue
                         ticker_data = data[ticker]
                     else:
+                        # Fallback for single-index case (not expected with group_by='ticker')
                         ticker_data = data
                     
                     if 'Close' in ticker_data:
