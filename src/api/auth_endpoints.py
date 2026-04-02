@@ -155,10 +155,23 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Mot de passe incorrect")
     
     if not user.is_active:
-        raise HTTPException(
-            status_code=403, 
-            detail="Votre compte n'est pas encore activé. Veuillez vérifier vos emails."
-        )
+        # Check if a valid (non-expired) verification token still exists
+        valid_token = db.query(AuthToken).filter(
+            AuthToken.user_id == user.id,
+            AuthToken.type == "verify",
+            AuthToken.expires_at > datetime.utcnow()
+        ).first()
+        
+        if valid_token:
+            raise HTTPException(
+                status_code=403,
+                detail="PENDING_VERIFICATION"
+            )
+        else:
+            raise HTTPException(
+                status_code=403,
+                detail="VERIFICATION_EXPIRED"
+            )
     
     access_token = create_access_token(data={"sub": user.email})
     return TokenResponse(
@@ -195,6 +208,39 @@ def verify_email(token: str, db: Session = Depends(get_db)):
         return MessageResponse(message="Votre compte a été activé avec succès !")
     
     raise HTTPException(status_code=400, detail="Utilisateur non trouvé")
+
+@router.post("/resend-verification", response_model=MessageResponse)
+def resend_verification(data: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    """Resend verification email if token is expired or missing."""
+    user = db.query(User).filter(User.email == data.email).first()
+    
+    if not user:
+        # Don't reveal if email exists
+        return MessageResponse(message="Si cet email existe, un nouveau lien de vérification a été envoyé.")
+    
+    if user.is_active:
+        return MessageResponse(message="Ce compte est déjà activé. Vous pouvez vous connecter.")
+    
+    # Delete any existing verify tokens
+    db.query(AuthToken).filter(
+        AuthToken.user_id == user.id,
+        AuthToken.type == "verify"
+    ).delete()
+    
+    # Generate new verification token
+    token_str = uuid4().hex
+    verify_token = AuthToken(
+        user_id=user.id,
+        token=token_str,
+        type="verify",
+        expires_at=datetime.utcnow() + timedelta(hours=24)
+    )
+    db.add(verify_token)
+    db.commit()
+    
+    background_tasks.add_task(send_verification_email, user.email, token_str, user.full_name or "")
+    
+    return MessageResponse(message="Si cet email existe, un nouveau lien de vérification a été envoyé.")
 
 @router.post("/forgot-password", response_model=MessageResponse)
 def forgot_password(data: ForgotPasswordRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):

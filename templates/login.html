@@ -438,13 +438,35 @@
             const errorBox = document.getElementById('login-error-container');
 
             errorBox.style.display = 'none';
+            errorBox.innerHTML = '';
 
             try {
                 await api.login(email, pass);
                 window.location.href = '/espace_perso.html';
             } catch (err) {
-                errorBox.textContent = err.message;
+                if (err.message === 'PENDING_VERIFICATION') {
+                    errorBox.innerHTML = 'Votre compte n\'est pas encore activé. Veuillez vérifier vos emails (lien valable 24h).';
+                } else if (err.message === 'VERIFICATION_EXPIRED') {
+                    errorBox.innerHTML = `Votre lien de vérification a expiré.
+                        <br><br>
+                        <button onclick="resendVerification('${email}')" class="btn btn-primary" style="width:100%; margin-top:0.5rem;">
+                            Renvoyer l'email de confirmation
+                        </button>`;
+                } else {
+                    errorBox.innerHTML = err.message;
+                }
                 errorBox.style.display = 'block';
+            }
+        }
+
+        async function resendVerification(email) {
+            const errorBox = document.getElementById('login-error-container');
+            try {
+                const res = await api.post('/auth/resend-verification', { email });
+                errorBox.innerHTML = `<span style="color:#065f46;">✓ ${res.message}</span>`;
+                UI.toast('Email de confirmation envoyé !', 'success');
+            } catch (err) {
+                errorBox.innerHTML = `Erreur : ${err.message}`;
             }
         }
 
