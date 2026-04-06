@@ -786,53 +786,60 @@
                     </div>
 
                     <div class="card" id="rebalancing-card"
-                        style="display: none; margin-top: 1rem; border-left: 4px solid var(--primary);">
-                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.8rem;">
-                            <div
-                                style="background: rgba(var(--primary-rgb), 0.1); padding: 0.5rem; border-radius: 8px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path
-                                        d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-4.4 3.6-8 8-8 3.3 0 6.2 2 7.4 4.9M22 12c0 4.4-3.6 8-8 8-3.3 0-6.2-2-7.4-4.9" />
-                                </svg>
-                            </div>
-                            <h3 style="margin: 0;">Gestion du Rééquilibrage</h3>
+                        style="display: none; margin-top: 1rem; border-left: 4px solid var(--primary); position: relative; overflow: hidden;">
+                        <!-- Coming Soon Overlay -->
+                        <div
+                            style="position: absolute; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(26, 23, 20, 0.4); backdrop-filter: blur(2px);">
+                            <span
+                                style="background: var(--primary); color: white; padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 0.05em;">Bientôt
+                                disponible</span>
                         </div>
-                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
-                            L'algorithme surveille en permanence votre portefeuille. Une limite de <strong>50% par
-                                secteur</strong> est appliquée pour éviter toute concentration excessive.
-                        </p>
-                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-                            <label
-                                style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Mode
-                                de suivi souhaité</label>
-                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+
+                        <div style="filter: blur(1.5px); pointer-events: none; opacity: 0.7;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.8rem;">
+                                <div
+                                    style="background: rgba(var(--primary-rgb), 0.1); padding: 0.5rem; border-radius: 8px;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path
+                                            d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-4.4 3.6-8 8-8 3.3 0 6.2 2 7.4 4.9M22 12c0 4.4-3.6 8-8 8-3.3 0-6.2-2-7.4-4.9" />
+                                    </svg>
+                                </div>
+                                <h3 style="margin: 0;">Gestion du Rééquilibrage</h3>
+                            </div>
+                            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4;">
+                                L'algorithme surveille en permanence votre portefeuille. Une limite de <strong>50% par
+                                    secteur</strong> est appliquée pour éviter toute concentration excessive.
+                            </p>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
                                 <label
-                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.2s;"
-                                    onmouseover="this.style.borderColor='var(--primary)'"
-                                    onmouseout="this.style.borderColor='var(--border)'">
-                                    <input type="radio" name="rebalance_mode" value="periodic" checked
-                                        style="width: auto; margin: 0;">
-                                    <div style="display: flex; flex-direction: column;">
-                                        <span style="font-size: 0.9rem; font-weight: 600;">Rééquilibrage
-                                            Périodique</span>
-                                        <span style="font-size: 0.75rem; color: var(--text-muted);">Ajustement
-                                            automatique tous les 6 mois.</span>
-                                    </div>
-                                </label>
-                                <label
-                                    style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; transition: all 0.2s;"
-                                    onmouseover="this.style.borderColor='var(--primary)'"
-                                    onmouseout="this.style.borderColor='var(--border)'">
-                                    <input type="radio" name="rebalance_mode" value="threshold"
-                                        style="width: auto; margin: 0;">
-                                    <div style="display: flex; flex-direction: column;">
-                                        <span style="font-size: 0.9rem; font-weight: 600;">Rééquilibrage par Seuil
-                                            (+5%)</span>
-                                        <span style="font-size: 0.75rem; color: var(--text-muted);">Ajustement dès qu'un
-                                            actif dévie trop.</span>
-                                    </div>
-                                </label>
+                                    style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 0.5rem;">Mode
+                                    de suivi souhaité</label>
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <label
+                                        style="display: flex; align-items: center; gap: 0.5rem; cursor: not-allowed; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; opacity: 0.8;">
+                                        <input type="radio" name="rebalance_mode" value="periodic" checked disabled
+                                            style="width: auto; margin: 0;">
+                                        <div style="display: flex; flex-direction: column;">
+                                            <span style="font-size: 0.9rem; font-weight: 600;">Rééquilibrage
+                                                Périodique</span>
+                                            <span style="font-size: 0.75rem; color: var(--text-muted);">Ajustement
+                                                automatique tous les 6 mois.</span>
+                                        </div>
+                                    </label>
+                                    <label
+                                        style="display: flex; align-items: center; gap: 0.5rem; cursor: not-allowed; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; opacity: 0.8;">
+                                        <input type="radio" name="rebalance_mode" value="threshold" disabled
+                                            style="width: auto; margin: 0;">
+                                        <div style="display: flex; flex-direction: column;">
+                                            <span style="font-size: 0.9rem; font-weight: 600;">Rééquilibrage par Seuil
+                                                (+5%)</span>
+                                            <span style="font-size: 0.75rem; color: var(--text-muted);">Ajustement dès
+                                                qu'un
+                                                actif dévie trop.</span>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
