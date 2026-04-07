@@ -18,12 +18,18 @@ def get_portfolios(
     current_user: User = Depends(get_current_user)
 ):
     """List all portfolios for current user."""
-    portfolios = db.query(SavedPortfolio).filter(
+    portfolios = db.query(
+        SavedPortfolio.id,
+        SavedPortfolio.created_at,
+        SavedPortfolio.optimization_method,
+        SavedProfile.risk_profile
+    ).join(SavedProfile, SavedPortfolio.profile_id == SavedProfile.id).filter(
         SavedPortfolio.user_id == current_user.id,
         SavedPortfolio.status == "accepted"
     ).order_by(SavedPortfolio.created_at.desc()).offset(offset).limit(limit).all()
     
-    return portfolios
+    # Convert to list of dicts for easy JS consumption
+    return [{"id": p.id, "created_at": p.created_at, "optimization_method": p.optimization_method, "risk_profile": p.risk_profile} for p in portfolios]
 
 @router.get("/{portfolio_id}", response_model=PortfolioDetailResponse)
 def get_portfolio(

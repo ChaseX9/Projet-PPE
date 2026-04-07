@@ -110,7 +110,7 @@
                 <p style="font-size: 1.2rem; font-weight: 600;" id="last-date">-</p>
             </div>
             <div class="card" style="margin-bottom: 0;">
-                <h3 style="color: var(--text-muted); font-size: 0.9rem;">Algorithme d'Optimisation</h3>
+                <h3 style="color: var(--text-muted); font-size: 0.9rem;">Profil Moyen</h3>
                 <p style="font-size: 1.2rem; font-weight: 600;" id="avg-profile">-</p>
             </div>
         </div>
@@ -181,11 +181,11 @@
                     const last = portfolios[0];
                     document.getElementById('last-date').textContent = new Date(last.created_at).toLocaleDateString();
 
-                    // Logic for "Most used algorithm"
+                    // Logic for "Most frequent Risk Profile"
                     const counts = {};
                     portfolios.forEach(p => {
-                        const m = p.optimization_method || "Inconnu";
-                        counts[m] = (counts[m] || 0) + 1;
+                        const r = p.risk_profile || "Inconnu";
+                        counts[r] = (counts[r] || 0) + 1;
                     });
                     const mostUsed = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
                     document.getElementById('avg-profile').textContent = mostUsed;
