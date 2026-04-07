@@ -180,7 +180,15 @@
                 if (portfolios.length > 0) {
                     const last = portfolios[0];
                     document.getElementById('last-date').textContent = new Date(last.created_at).toLocaleDateString();
-                    document.getElementById('avg-profile').textContent = last.optimization_method;
+
+                    // Logic for "Most used algorithm"
+                    const counts = {};
+                    portfolios.forEach(p => {
+                        const m = p.optimization_method || "Inconnu";
+                        counts[m] = (counts[m] || 0) + 1;
+                    });
+                    const mostUsed = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+                    document.getElementById('avg-profile').textContent = mostUsed;
                 }
 
                 // Load Academy stats
