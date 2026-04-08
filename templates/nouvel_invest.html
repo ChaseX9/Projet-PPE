@@ -1875,8 +1875,8 @@
                 }
 
 
-                // Find the FIRST suggestion that is NOT followed
-                const suggestion = fieldSuggestions.find(s => !s.isFollowed);
+                // Find the FIRST suggestion that is NOT followed AND NOT ignored (by rule ID)
+                const suggestion = fieldSuggestions.find(s => !s.isFollowed && !ignoredRuleIds.has(s.ruleId));
 
                 // Only show if there's an unfollowed suggestion
                 if (suggestion) {
@@ -1940,7 +1940,7 @@
                                     <button type="button" class="btn-secondary" onclick="applySuggestion('${containerId}', '${validSuggestedValues[0]}')">
                                         Appliquer
                                     </button>
-                                    <button type="button" class="btn-secondary" onclick="ignoreSuggestion('${containerId}')" style="background: var(--text-muted);">
+                                    <button type="button" class="btn-secondary" onclick="ignoreSuggestion('${containerId}', '${suggestion.ruleId}')" style="background: var(--text-muted);">
                                         Ignorer
                                     </button>
                                 </div>
@@ -1984,9 +1984,15 @@
             }
         }
 
-        function ignoreSuggestion(fieldId) {
+        const ignoredRuleIds = new Set();
+
+        function ignoreSuggestion(fieldId, ruleId) {
             const container = document.getElementById(`suggestion-${fieldId}`);
             if (container) {
+                if (ruleId) {
+                    ignoredRuleIds.add(ruleId);
+                    console.log(`Rule ${ruleId} ignored for field ${fieldId}`);
+                }
                 container.innerHTML = '';
             }
         }

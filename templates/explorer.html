@@ -550,7 +550,9 @@
                     htmlBuffer += `
                         <div class="card asset-card" onclick="openModal('${asset.ticker}')">
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                                <span class="badge ${asset.asset_type === 'ETF' ? 'badge-etf' : 'badge-stock'}">${asset.asset_type || 'STOCK'}</span>
+                                <span class="badge ${asset.asset_type?.toUpperCase() === 'ETF' ? 'badge-etf' : 'badge-stock'}">
+                            ${asset.asset_type?.toUpperCase() || 'STOCK'}
+                        </span>
                                 ${asset.is_esg ? '<span class="badge badge-esg">ESG</span>' : ''}
                             </div>
                             <h3 style="margin-bottom: 0.25rem; color: var(--text-main); font-size: 1.1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${asset.name || asset.ticker}</h3>
@@ -604,38 +606,28 @@
 
         function drawSparkline(canvasId, points) {
             const canvas = document.getElementById(canvasId);
-            if (!canvas) return;
+            if (!canvas || !points || points.length < 2) return;
 
-            const labels = points.map(p => p.date);
             const data = points.map(p => p.price);
-
-            // Récupérer les couleurs définies dans le dataset HTML
-            const strokeColor = canvas.dataset.color || '#4A90A4';
-            const gradientTop = canvas.dataset.gtop || 'rgba(74, 144, 164, 0.4)';
-            const gradientBottom = canvas.dataset.gbottom || 'rgba(74, 144, 164, 0)';
-
             const ctx = canvas.getContext('2d');
+
+            // Clean up existing chart if any
+            if (window.sparklineCharts[canvasId]) {
+                window.sparklineCharts[canvasId].destroy();
+            }
 
             window.sparklineCharts[canvasId] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: data.map((_, i) => i),
                     datasets: [{
-                        label: canvas.dataset.name,
                         data: data,
-                        borderColor: strokeColor,
-                        backgroundColor: (context) => {
-                            const chartCtx = context.chart.ctx;
-                            const gradient = chartCtx.createLinearGradient(0, 0, 0, 60);
-                            gradient.addColorStop(0, gradientTop);
-                            gradient.addColorStop(1, gradientBottom);
-                            return gradient;
-                        },
-                        borderWidth: 2,
+                        borderColor: data[data.length - 1] >= data[0] ? '#10b981' : '#ef4444',
+                        borderWidth: 1.5,
                         pointRadius: 0,
-                        pointHoverRadius: 4,
                         fill: true,
-                        tension: 0.1
+                        backgroundColor: data[data.length - 1] >= data[0] ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)',
+                        tension: 0.4
                     }]
                 },
                 options: {
@@ -643,30 +635,13 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            displayColors: false,
-                            callbacks: {
-                                title: function (context) {
-                                    return context[0].label;
-                                },
-                                label: function (context) {
-                                    const value = context.parsed.y.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                    return context.dataset.label + ' : ' + value + ' €/$';
-                                }
-                            }
-                        }
+                        tooltip: { enabled: false }
                     },
                     scales: {
                         x: { display: false },
-                        y: { display: false, min: Math.min(...data) * 0.95 }
+                        y: { display: false, min: Math.min(...data) * 0.98, max: Math.max(...data) * 1.02 }
                     },
-                    interaction: {
-                        mode: 'nearest',
-                        axis: 'x',
-                        intersect: false
-                    }
+                    interaction: { intersect: false }
                 }
             });
         }
